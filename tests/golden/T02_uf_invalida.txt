@@ -1,0 +1,24 @@
+ CADCLI                       INCLUSAO DE CLIENTE                            T02
+
+
+   CODIGO .: 000101
+   NOME ...: UFERRADA______________________
+   CPF ....: 55555555555
+   CIDADE .: RECIFE______________
+   UF .....: XX
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ F3=VOLTAR  F12=CANCELAR  ENTER=CONFIRMAR
+ UF INVALIDA

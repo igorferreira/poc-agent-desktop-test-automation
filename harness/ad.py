@@ -15,7 +15,7 @@ class Envelope:
     ok: bool
     version: str | None = None
     command: str | None = None
-    data: dict | None = None
+    data: dict | list | None = None
     error_code: str | None = None
     error_message: str | None = None
     disposition: dict | None = None  # {"delivery": ..., "retry": ...}
@@ -74,7 +74,7 @@ def _parse(argv, rc, stdout, stderr):
     data = j.get("data")
     return Envelope(
         argv=tuple(argv), returncode=rc, ok=j["ok"], version=j.get("version"),
-        command=j.get("command"), data=data if isinstance(data, dict) else None,
+        command=j.get("command"), data=data if isinstance(data, (dict, list)) else None,
         error_code=err.get("code"), error_message=err.get("message"),
         disposition=err.get("disposition") if isinstance(err.get("disposition"), dict) else None,
     )

@@ -1,0 +1,24 @@
+ CADCLI                       INCLUSAO DE CLIENTE                            T02
+
+
+   CODIGO .: 000000
+   NOME ...: ______________________________
+   CPF ....: 00000000000
+   CIDADE .: ____________________
+   UF .....: __
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ F3=VOLTAR  F12=CANCELAR  ENTER=CONFIRMAR
+

@@ -176,6 +176,7 @@ Todas na linha 24, coluna 2. Texto exato:
 | `CODIGO JA CADASTRADO` | T02 | Código já existe |
 | `UF INVALIDA` | T02 | UF fora da lista |
 | `CLIENTE NAO ENCONTRADO` | T03 | Código não existe |
+| `CADASTRO CHEIO` | T02 | Tabela em memória com 100 registros. Não testada |
 
 ## 6. Teclas
 
@@ -212,11 +213,12 @@ Estado inicial, em `app/seed/clientes.dat`:
 
 Os CPFs são sequências de dígitos repetidos, inválidas pela regra do CPF. Não pertencem a ninguém.
 
-## 8. A validar na implementação
+## 8. Verificado na implementação (GnuCOBOL 3.2.0, tmux 80x24, 2026-11-12)
 
-- Caractere mostrado em campo de entrada vazio.
-- Comportamento do Backspace e do Tab dentro de um `ACCEPT` de tela do GnuCOBOL 3.2.
-- Se a gravação `LINE SEQUENTIAL` remove espaços no fim da linha.
-- Se o cursor volta ao primeiro campo, com o conteúdo anterior, depois de um Enter com erro.
-
-Se algum destes pontos se comportar de outro jeito, corrigir este documento e anotar em "Achados" no [TASKS.md](TASKS.md).
+- **Campo vazio:** alfanumérico mostra `_` por posição. Numérico (CODIGO, CPF) mostra zeros (`000000`, `00000000000`), não `_`. Os mapas das seções 3 e 4 usam `_` só como marca de campo. Vale também depois de limpar (F12, inclusão gravada).
+- **Digitação:** o primeiro dígito digitado sobrescreve a posição 1; digitar os 6 dígitos completos substitui os zeros. O campo OPCAO de T01 é alfanumérico (1 caractere) no app, para aparecer como `_`; qualquer valor diferente de 1, 2 e 9 dá `OPCAO INVALIDA`.
+- **Backspace:** apaga o caractere à esquerda dentro do campo (`ANA TESTEX` + BSpace = `ANA TESTE`). **Tab:** avança ao próximo campo; campo preenchido por inteiro não avança sozinho.
+- **Espaço no fim da gravação:** o `LINE SEQUENTIAL` remove espaços no fim da linha. Como a UF é o último campo e nunca vazia, a linha gravada tem 69 colunas (conferido com `cat -A`).
+- **Enter com erro:** o cursor volta ao primeiro campo (4, 14) com o conteúdo anterior mantido. Observação: ao repintar, espaço dentro de um campo preenchido aparece como `_` (ex.: `UF_ERRADA`), só na tela; o dado em memória está certo. O oráculo não deve comparar o NOME de um erro com a digitação literal.
+- **Códigos de CRT STATUS:** Enter = 0000, F3 = 1003, F12 = 1012 (com `COB_SCREEN_EXCEPTIONS=Y`).
+- **Capturas de referência:** `tests/golden/*.txt` (capture-pane de cada tela e mensagem).

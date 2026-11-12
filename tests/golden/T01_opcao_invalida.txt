@@ -1,0 +1,24 @@
+ CADCLI                       CADASTRO DE CLIENTES                           T01
+
+
+
+         1-INCLUIR
+
+         2-CONSULTAR
+
+         9-SAIR
+
+
+         OPCAO .: _
+
+
+
+
+
+
+
+
+
+
+ F3=SAIR  ENTER=CONFIRMAR
+ OPCAO INVALIDA

@@ -1,0 +1,24 @@
+ CADCLI                       INCLUSAO DE CLIENTE                            T02
+
+
+   CODIGO .: 000001
+   NOME ...: DUPLICADO_____________________
+   CPF ....: 44444444444
+   CIDADE .: NITEROI_____________
+   UF .....: RJ
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ F3=VOLTAR  F12=CANCELAR  ENTER=CONFIRMAR
+ CODIGO JA CADASTRADO

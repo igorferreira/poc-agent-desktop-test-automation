@@ -29,7 +29,7 @@ Atualizado em 2026-11-11. Fonte de requisitos: [PRD.md](PRD.md). Como fazer: [SP
 | ID | Tarefa | Pronto quando | Agente | Papel | Depende | Status |
 |---|---|---|---|---|---|---|
 | T-010 | `git init`, `.gitignore` (`evidence/`, `bin/`, `data/`) e repositório público no GitHub | Primeiro commit com os documentos, publicado | devsquad-devsecops | DevOps | T-006 | DONE |
-| T-011 | Instalar `gnucobol3` (exige `sudo`) | `cobc --version` responde | Igor | Dono da máquina | T-006 | TODO |
+| T-011 | Instalar `gnucobol3` (exige `sudo`) | `cobc --version` responde | Igor | Dono da máquina | T-006 | DONE |
 | T-012 | Fixar a versão do `agent-desktop` | `agent-desktop version` mostra a versão decidida em D2; `status` continua saudável | ubuntu-mate-doc | DevOps | T-006 | DONE |
 | T-013 | Ler os guias embutidos (`skills get desktop`, `platform` e referências Linux) e os `--help` dos comandos usados | SPEC §6 e §14 atualizadas com as flags reais | devsquad-architect | Arquitetura | T-012 | DONE |
 | T-014 | Script do display isolado (Xephyr + D-Bus + AT-SPI + `marco` + terminal) | `agent-desktop status` e `list-apps` funcionam apontando para o display isolado, ou falha documentada | ubuntu-mate-doc | Infra Linux, desktop MATE | T-012 | DONE |
@@ -41,32 +41,32 @@ Feita com tela falsa, antes do app COBOL. Cada sondagem grava os envelopes em `e
 | ID | Tarefa | Pronto quando | Agente | Papel | Depende | Status |
 |---|---|---|---|---|---|---|
 | T-020 | Tela falsa 80x24 dentro do tmux, em janela com título `CADCLI` | Janela abre e o oráculo (`capture-pane`) devolve as 24 linhas | devsquad-backend | Desenvolvimento | T-012 | DONE |
-| T-021 | P2: janela visível e `window-id` localizável pelo título | Resultado registrado | devsquad-qa | QA | T-020 | BLOCKED (sondagem interrompida no limite de uso; retomar) |
-| T-022 | P3: o que o `snapshot` mostra; leitura L1 | Resultado e trecho do envelope registrados | devsquad-qa | QA | T-021 | BLOCKED (sondagem interrompida no limite de uso; retomar) |
-| T-023 | P4: `type` sem `--headed` (I1) | Código de erro registrado | devsquad-qa | QA | T-021 | BLOCKED (sondagem interrompida no limite de uso; retomar) |
-| T-024 | P5: entrada com `--headed` (I2): texto, Enter, Tab, Backspace, F3, F12 | Cada tecla confirmada ou negada pelo oráculo | devsquad-qa | QA | T-021 | BLOCKED (sondagem interrompida no limite de uso; retomar) |
-| T-025 | P6: leitura L2 pela área de transferência | Similaridade com o oráculo registrada | devsquad-qa | QA | T-024 | BLOCKED (sondagem interrompida no limite de uso; retomar) |
-| T-026 | P7: leitura L3 por `screenshot` + `tesseract` | Similaridade com o oráculo registrada | devsquad-qa | QA | T-021 | BLOCKED (sondagem interrompida no limite de uso; retomar) |
-| T-027 | P8: controles — `xterm`, terminal sem tmux, display isolado contra sessão real | Matriz preenchida | devsquad-qa | QA | T-014, T-024 | BLOCKED (sondagem interrompida no limite de uso; retomar) |
-| T-028 | **Portão G0:** nota de viabilidade com a matriz estratégia × terminal × display | Igor decide seguir ou encerrar com NO-GO | devsquad-lead | Liderança técnica | T-022 a T-027 | TODO |
+| T-021 | P2: janela visível e `window-id` localizável pelo título | Resultado registrado | devsquad-qa | QA | T-020 | DONE |
+| T-022 | P3: o que o `snapshot` mostra; leitura L1 | Resultado e trecho do envelope registrados | devsquad-qa | QA | T-021 | DONE |
+| T-023 | P4: `type` sem `--headed` (I1) | Código de erro registrado | devsquad-qa | QA | T-021 | DONE |
+| T-024 | P5: entrada com `--headed` (I2): texto, Enter, Tab, Backspace, F3, F12 | Cada tecla confirmada ou negada pelo oráculo | devsquad-qa | QA | T-021 | DONE |
+| T-025 | P6: leitura L2 pela área de transferência | Similaridade com o oráculo registrada | devsquad-qa | QA | T-024 | DONE |
+| T-026 | P7: leitura L3 por `screenshot` + `tesseract` | Similaridade com o oráculo registrada | devsquad-qa | QA | T-021 | DONE |
+| T-027 | P8: controles — `xterm`, terminal sem tmux, display isolado contra sessão real | Matriz preenchida | devsquad-qa | QA | T-014, T-024 | DOING (xterm feito; sem tmux e sessão real pendentes) |
+| T-028 | **Portão G0:** nota de viabilidade com a matriz estratégia × terminal × display | Igor decide seguir ou encerrar com NO-GO | devsquad-lead | Liderança técnica | T-022 a T-027 | DONE (Igor: seguir, 2026-11-12) |
 
 ## F3 — App CADCLI
 
 | ID | Tarefa | Pronto quando | Agente | Papel | Depende | Status |
 |---|---|---|---|---|---|---|
-| T-030 | `app/cadcli.cbl`: telas T01–T03, validações, teclas F3 e F12 | Compila sem avisos | devsquad-backend | Desenvolvimento COBOL | T-011, T-028 | TODO |
-| T-031 | `app/build.sh`, seed de dados e reset | Um comando compila; um comando restaura o estado inicial | devsquad-backend | Desenvolvimento | T-030 | TODO |
-| T-032 | Teste de fumaça manual e telas de referência | As três telas e as cinco mensagens capturadas por `capture-pane` e guardadas em `tests/golden/` | devsquad-qa | QA | T-031 | TODO |
+| T-030 | `app/cadcli.cbl`: telas T01–T03, validações, teclas F3 e F12 | Compila sem avisos | devsquad-backend | Desenvolvimento COBOL | T-011, T-028 | DONE |
+| T-031 | `app/build.sh`, seed de dados e reset | Um comando compila; um comando restaura o estado inicial | devsquad-backend | Desenvolvimento | T-030 | DONE |
+| T-032 | Teste de fumaça manual e telas de referência | As três telas e as cinco mensagens capturadas por `capture-pane` e guardadas em `tests/golden/` | devsquad-qa | QA | T-031 | DONE |
 
 ## F4 — Harness
 
 | ID | Tarefa | Pronto quando | Agente | Papel | Depende | Status |
 |---|---|---|---|---|---|---|
 | T-040 | `ad.py`: executar o `agent-desktop`, interpretar envelope, gravar `steps.jsonl` | Testes unitários de envelope de sucesso e de erro passam | python-senior | Desenvolvimento Python | T-013 | DONE |
-| T-041 | `launcher.py`: `env up` e `env down`, descoberta do `window-id` | Ambiente sobe e desce sem processos órfãos | python-senior | Desenvolvimento Python | T-040, T-014 | TODO |
+| T-041 | `launcher.py`: `env up` e `env down`, descoberta do `window-id` | Ambiente sobe e desce sem processos órfãos | python-senior | Desenvolvimento Python | T-040, T-014 | DONE |
 | T-042 | `oracle.py`: tela pelo tmux e conferência de `clientes.dat` | Testes unitários com telas de referência passam | python-senior | Desenvolvimento Python | T-032 | TODO |
-| T-043 | `screen.py`: estratégias de leitura viáveis segundo G0, normalização, fidelidade | Testes unitários de normalização e fidelidade passam | python-senior | Desenvolvimento Python | T-040, T-028 | TODO |
-| T-044 | `keys.py`: envio de texto e teclas com guarda de foco | Envio abortado quando a janela ativa não é a CADCLI (teste) | python-senior | Desenvolvimento Python | T-040, T-028 | TODO |
+| T-043 | `screen.py`: estratégias de leitura viáveis segundo G0, normalização, fidelidade | Testes unitários de normalização e fidelidade passam | python-senior | Desenvolvimento Python | T-040, T-028 | DONE |
+| T-044 | `keys.py`: envio de texto e teclas com guarda de foco | Envio abortado quando a janela ativa não é a CADCLI (teste) | python-senior | Desenvolvimento Python | T-040, T-028 | DONE |
 | T-045 | `probes.py`: automatizar P2–P8 | `python3 -m harness probe` reproduz a matriz de G0 | python-senior | Desenvolvimento Python | T-043, T-044 | TODO |
 
 ## F5 — Fase A (determinística)
@@ -116,3 +116,10 @@ Registrar aqui, com data, o que a execução descobrir e que mude o plano.
 - 2026-11-12 — T-013: `press --app` manda teclas ao processo sem focar a janela (`--headed` foca antes). `type` exige ref; o nó `Terminal` segue com `value` nulo segundo o guia 1.2.0.
 - 2026-11-12 — T-040: `retry_safe` só aceita repetir com `disposition.retry == "safe"` e `delivery == "not_delivered"` (guia `skills get desktop`, seção "Delivery and retry").
 - 2026-11-12 — `tests/test_fake_screen.py` sobe e derruba a mesma sessão `tmux -L cadcli` usada pelas sondagens. Não rodar esse teste durante uma sondagem ou execução de cenário.
+- 2026-11-12 — F2: L1 inviável (nó `Terminal` sem texto); L2 pela área de transferência 6/6 exata; L3 até 0,95 de similaridade, nunca exata; I1 `POLICY_DENIED`; I2 15/15 por tecla. Detalhes em [G0-VIABILIDADE.md](G0-VIABILIDADE.md).
+- 2026-11-12 — F2: `press --app` sem foco não entrega (`ACTION_FAILED`, `window_active`). Corrige o achado de T-013.
+- 2026-11-12 — F2: `list-windows` devolve `data` como lista. A sessão D-Bus isolada caiu sozinha uma vez; causa não determinada.
+- 2026-11-12 — F3: CADCLI compila sem aviso de código. O `cobc` da distro gera `_FORTIFY_SOURCE redefined`, silenciado em `app/build.sh`. `CRT STATUS`: Enter 0000, F3 1003, F12 1012. C1–C5 passaram à mão via `tmux send-keys`.
+- 2026-11-12 — F3: campo numérico vazio mostra zeros (`000000`), não `_`. Ao repintar depois de um erro, espaço dentro de campo preenchido aparece como `_` (`UF_ERRADA`): o oráculo não deve comparar NOME literal em tela de erro. Mensagem extra `CADASTRO CHEIO` (100 registros), não testada.
+- 2026-11-12 — F4: causa da "queda sozinha" da sessão isolada: a tela falsa morria com `curses.error` quando o terminal anexava e o pane ficava menor que 24 linhas. O launcher agora fixa `window-size manual` e `resize-window -x 80 -y 24`. Com `status` do tmux ligado, a leitura L2 perde a primeira linha.
+- 2026-11-12 — F4: leitura L2 completa (menus e `clipboard-get`) leva cerca de 1,8 s; os 45 ms do G0 eram só o `clipboard-get`. Integração com a tela falsa: L2 exata (24/24). L3: similaridade 0,86, 0 linhas iguais, porque o `tesseract` descarta linhas vazias e espaços duplos.

@@ -1,0 +1,24 @@
+ CADCLI                       CONSULTA DE CLIENTE                            T03
+
+
+   CODIGO .: 000001
+
+   NOME ...: MARIA DA SILVA
+   CPF ....: 11111111111
+   CIDADE .: RIO DE JANEIRO
+   UF .....: RJ
+
+
+
+
+
+
+
+
+
+
+
+
+
+ F3=VOLTAR  ENTER=CONSULTAR
+

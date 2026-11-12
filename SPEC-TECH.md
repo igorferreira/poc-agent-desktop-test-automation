@@ -200,12 +200,12 @@ Combinações bloqueadas com `POLICY_DENIED` (só passam com `--force`): `alt+f4
 ```bash
 # janela CADCLI (P2). Nunca list-windows sem --app: lista título de janelas de outros apps
 W=$(agent-desktop list-windows --app mate-terminal \
-  | jq -r '.data.windows[] | select(.title | contains("CADCLI")) | .id')   # forma do JSON a confirmar em P2
+  | jq -r '.data[] | select(.title == "CADCLI") | .id')   # verificado em P2: data é uma lista
 
 # foco e guarda (G): confirmar que a ativa é a CADCLI antes de cada envio --headed
 agent-desktop focus-window --window-id "$W"
 agent-desktop list-windows --app mate-terminal | jq -e --arg w "$W" \
-  '.data.windows[0] | .id == $w and .is_focused'   # focada vem primeiro; abortar se falhar
+  '.data[] | select(.id == $w) | .is_focused'   # abortar se não for true
 
 # L1: leitura por árvore (P3)
 agent-desktop snapshot --window-id "$W" -i --compact
@@ -317,13 +317,13 @@ Feitas com uma tela falsa (script que imprime 24 linhas e ecoa teclas, dentro do
 | ID | Pergunta | Estado |
 |---|---|---|
 | P1 | `agent-desktop status` saudável? | **Feito:** `accessibility: granted` |
-| P2 | A janela do terminal aparece em `list-apps` e `list-windows`, com `window-id` localizável pelo título? | Pendente |
-| P3 | O `snapshot` mostra o quê? Algum nó expõe o texto da tela (L1)? | Pendente |
-| P4 | `type` sem `--headed` devolve qual erro (I1)? | Pendente |
-| P5 | Com `--headed`: texto, Enter, Tab, Backspace, F3 e F12 chegam ao app (I2)? | Pendente |
-| P6 | L2 devolve a tela completa pela área de transferência? | Pendente |
-| P7 | L3: `screenshot` + `tesseract` atinge que similaridade com o oráculo? | Pendente |
-| P8 | Controles: `xterm`; terminal sem tmux; display isolado contra sessão real | Pendente |
+| P2 | A janela do terminal aparece em `list-apps` e `list-windows`, com `window-id` localizável pelo título? | **Feito (2026-11-12):** sim. `list-windows --app mate-terminal` devolve `data` como **array** (não `data.windows`); filtrar `.data[]|select(.title=="CADCLI")`. `focus-window --window-id` funciona com e sem `--headed` (`is_focused: true`). O id muda a cada subida |
+| P3 | O `snapshot` mostra o quê? Algum nó expõe o texto da tela (L1)? | **Feito:** L1 NÃO funciona. Árvore (80 refs) só tem menus, aba, `Terminal` (textfield) e scrollbar. `get --property text` no `Terminal` devolve o nome `"Terminal"`; `value` é `null`. `find --text` e `wait --text` não acham o texto da tela |
+| P4 | `type` sem `--headed` devolve qual erro (I1)? | **Feito:** `POLICY_DENIED`, check `supported_action`, `not_delivered`/`safe`. Nada chegou ao oráculo |
+| P5 | Com `--headed`: texto, Enter, Tab, Backspace, F3 e F12 chegam ao app (I2)? | **Feito:** sim. `--headed type` 3/3; `press` escopado por `--window-id` (com e sem `--headed`, janela focada) 15/15; `press --app` focado 15/15; `--headed press --app` 15/15. Janela NÃO focada, sem `--headed`: `press --window-id` dá `STALE_REF` (`exact_window_focus`) e `press --app` dá `ACTION_FAILED` (`window_active`), 0/15 enviadas, nada entregue. `disposition` sempre `delivered_unverified` |
+| P6 | L2 devolve a tela completa pela área de transferência? | **Feito:** sim, 6/6 com igualdade exata e razão 1.0 (menu Editar > Selecionar tudo > Copiar por `click` semântico, sem `--headed`; e `--headed press ctrl+shift+a`/`ctrl+shift+c`). `clipboard-get` em ~45 ms. Menu precisa abrir antes (`click` em `Editar`), senão item `offscreen` |
+| P7 | L3: `screenshot` + `tesseract` atinge que similaridade com o oráculo? | **Feito:** PNG 836x588. OCR `--psm 6`: bruto 0.859, recorte 0.902, recorte+2x+negativo+cinza 0.953 (14/23 linhas iguais). Nunca exato (confunde 0/O, 1/I, 3 em lugar de J etc.) |
+| P8 | Controles: `xterm`; terminal sem tmux; display isolado contra sessão real | **Parcial:** `xterm` invisível (`list-windows` `[]`, `list-apps` só `marco`). Mate-terminal sem tmux: não feito. Sessão real: pendente de autorização do Igor |
 
 Saída: matriz estratégia × terminal × display, e o portão G0 do PRD.
 
@@ -354,10 +354,10 @@ Há apps sensíveis abertos na sessão real (gerenciador de senhas, mensageiros,
 ## 14. Não verificado
 
 - Saída real de `--help` na 1.2.0: as flags da seção 6 vêm dos guias embutidos [G] e do fonte do `main` [F]; rodar `--help` de cada comando uma vez e corrigir a seção 6 se divergir (em especial `focus-window --title`, `wait --text` com `--window-id`, `screenshot --window-id`).
-- Nome do app do `mate-terminal` em `list-apps` (valor exato para `list-windows --app`) e forma do JSON de `list-windows` (`data.windows[]`?). Se o `mate-terminal` mudar o título da janela depois de aberto (o tmux ou o app podem emitir título), o filtro por `CADCLI` quebra. Sondagem P2.
+- Verificado em P2: app `mate-terminal`, JSON em `data[]`. Não verificado: título mudar depois de aberto.
 - Se `focus-window` funciona sem `--headed` (um trecho do guia mostra `--headed focus-window`, outro não). P2/P5.
 - Se o nó `Terminal` do `mate-terminal` está `focused` e `active` a ponto de `--headed type REF` passar na checagem de foco; senão cai em I2b. P5.
-- Se algum outro nó do `mate-terminal` expõe o texto da tela, apesar de o guia dizer `value` nulo. P3.
+- Verificado em P3: nenhum nó expõe o texto da tela.
 - Funcionamento do `agent-desktop` em display Xephyr (o guia confirma barramento privado com `dbus-run-session`, mas não Xephyr; `focus-window` precisa de EWMH, que o `marco` deveria dar).
 - Nome e atalho dos itens "Selecionar tudo" e "Copiar" no `mate-terminal` (`ctrl+shift+a` e `ctrl+shift+c` são o palpite) e se o `clipboard-get` lê a seleção que o VTE serve. P6.
 - Se o `marco` compõe janelas (define se `screenshot` de janela coberta funciona). P7.

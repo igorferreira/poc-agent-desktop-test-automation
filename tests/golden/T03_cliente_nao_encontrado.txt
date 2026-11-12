@@ -1,0 +1,24 @@
+ CADCLI                       CONSULTA DE CLIENTE                            T03
+
+
+   CODIGO .: 000999
+
+   NOME ...:
+   CPF ....:
+   CIDADE .:
+   UF .....:
+
+
+
+
+
+
+
+
+
+
+
+
+
+ F3=VOLTAR  ENTER=CONSULTAR
+ CLIENTE NAO ENCONTRADO
