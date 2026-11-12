@@ -64,7 +64,7 @@ def read_l3(session, crop="812x504+12+72") -> list[str]:
         _ad(session, ["screenshot", "--window-id", session.window_id, raw])
         cmd = ["convert", raw] + (["-crop", crop, "+repage"] if crop else []) + \
               ["-resize", "200%", "-negate", "-colorspace", "Gray", prep]
-        subprocess.run(cmd, check=True, capture_output=True)
+        subprocess.run(cmd, check=True, capture_output=True, timeout=30)
         out = subprocess.run(["tesseract", prep, "stdout", "--psm", "6"], check=True,
-                             capture_output=True, text=True).stdout
+                             capture_output=True, text=True, timeout=60).stdout
     return normalize(out)

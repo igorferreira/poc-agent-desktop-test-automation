@@ -6,7 +6,6 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 EVID = ROOT / "evidence"
-DEFAULT_L2, DEFAULT_L3 = "20261112-113612", "20261112-112535"
 # Limiares do PRD seção 8
 LIM_A, LIM_FID, LIM_B = 9 / 10, 95.0, 2 / 3
 
@@ -127,9 +126,12 @@ def render(a2: dict, a3: dict, b: dict) -> str:
     w(f"- Fase A, L2, taxa por cenário >= 9/10: {ok(v['a_ok'])}.")
     w(f"- Fidelidade L2, igualdade exata >= 95%: {ok(v['f_ok'])} ({f1(a2['fid']['exact_pct'])}%).")
     w(f"- Fase B, >= 2/3 por caso: {ok(v['b_ok'])} ({pas_b}/{tot_b}).")
-    w("- Com os três critérios atendidos, leitura por área de transferência e entrada `--headed`, a regra do GO seria satisfeita.")
-    w("- A cláusula de ressalva \"só em um emulador de terminal específico\" também se aplica: o xterm é invisível ao "
-      "agent-desktop e só o mate-terminal (VTE) foi medido. Por isso a proposta é GO com ressalvas, não GO pleno.")
+    if v["a_ok"] and v["f_ok"] and v["b_ok"]:
+        w("- Com os três critérios atendidos, leitura por área de transferência e entrada `--headed`, a regra do GO seria satisfeita.")
+        w("- A cláusula de ressalva \"só em um emulador de terminal específico\" também se aplica: o xterm é invisível ao "
+          f"agent-desktop e só o mate-terminal (VTE) foi medido. Por isso a proposta é {v['nome']}, não GO pleno.")
+    else:
+        w(f"- Há critério não atendido; a regra do GO não é satisfeita e a proposta é {v['nome']}.")
     w("- Se algum critério acima não for atendido, o veredito cai: NO-GO quando a Fase A ou a B falham.\n")
     w("## 2. Ambiente e versões\n")
     w("| Item | Valor |\n|---|---|")
@@ -167,7 +169,8 @@ def render(a2: dict, a3: dict, b: dict) -> str:
     for lab, lim, f in (("Cenários com sucesso >= 9/10", "todos", lambda a: f"{sum(s['passed'] / s['reps'] >= LIM_A for s in a['sc'].values())}/{len(a['sc'])}"),
                         ("Leituras exatas", ">= 95%", lambda a: f"{f1(a['fid']['exact_pct'])}%")):
         w(f"| {lab} | {lim} | {f(a2)} | {f(a3)} |")
-    w("\nL3 falha o limiar de fidelidade; L2 o atende.\n")
+    l2f, l3f = a2["fid"]["exact_pct"] or 0, a3["fid"]["exact_pct"] or 0
+    w(f"\nL3 {'atende' if l3f >= LIM_FID else 'falha'} o limiar de fidelidade; L2 o {'atende' if l2f >= LIM_FID else 'falha'}.\n")
     w("## 5. Fase B (agente de IA)\n")
     w("| Caso | Passou | Contexto final médio (tokens) | Chamadas médias | Duração média (s) |\n|---|---|---|---|---|")
     for cid, c in b.items():
@@ -178,8 +181,9 @@ def render(a2: dict, a3: dict, b: dict) -> str:
     w("## 6. Hipóteses\n")
     a_all = all(s["passed"] == s["reps"] for s in a2["sc"].values())
     w("| ID | Estado | Evidência |\n|---|---|---|")
-    w(f"| H1 leitura do texto | **Parcial** | L1 refutada (nó `Terminal` sem texto). L2 confirmada: {f1(a2['fid']['exact_pct'])}% exatas em {a2['fid']['reads']} leituras. L3 inviável: similaridade {f1(a3['fid']['mean_ratio'], 2)}, {f1(a3['fid']['exact_pct'])}% exatas |")
-    w("| H2 envio de texto e teclas | **Confirmada, com ressalva** | `type`/`press` sem `--headed` ou sem foco não entregam; com `--headed` e foco, chegam (P5 e Fase A). Entrada física |")
+    h1 = "Confirmada" if l2f >= LIM_FID and l3f >= LIM_FID else "Parcial" if l2f >= LIM_FID or l3f >= LIM_FID else "Refutada"
+    w(f"| H1 leitura do texto | **{h1}** | L1 refutada (nó `Terminal` sem texto). L2 {'confirmada' if l2f >= LIM_FID else 'abaixo do limiar'}: {f1(a2['fid']['exact_pct'])}% exatas em {a2['fid']['reads']} leituras. L3 {'viável' if l3f >= LIM_FID else 'inviável'}: similaridade {f1(a3['fid']['mean_ratio'], 2)}, {f1(a3['fid']['exact_pct'])}% exatas |")
+    w(f"| H2 envio de texto e teclas | **{'Confirmada, com ressalva' if v['a_ok'] else 'Parcial'}** | `type`/`press` sem `--headed` ou sem foco não entregam; com `--headed` e foco, chegam (P5 e Fase A). Entrada física |")
     w(f"| H3 agente completa os cenários | **{'Confirmada' if v['b_ok'] else 'Parcial'}** | {pas_b}/{tot_b} casos pelo oráculo, em linguagem natural |")
     w(f"| H4 repetibilidade | **{'Confirmada' if a_all else 'Parcial'}** | Fase A: {sum(s['passed'] for s in a2['sc'].values())}/{sum(s['reps'] for s in a2['sc'].values())} (L2) e {sum(s['passed'] for s in a3['sc'].values())}/{sum(s['reps'] for s in a3['sc'].values())} (L3), sem `error_code`. Fase B só tem 3 repetições por caso |\n")
     w("## 7. Limitações e ressalvas\n")
@@ -188,10 +192,11 @@ def render(a2: dict, a3: dict, b: dict) -> str:
         "Entrada física (`--headed`) depende de foco; sem foco o agent-desktop recusa o envio.",
         "Só display isolado (Xephyr). A sessão real não foi medida; a sondagem P8 é parcial. Na sessão real a leitura sobrescreve a área de transferência do usuário.",
         "Só mate-terminal (VTE). O xterm é invisível ao agent-desktop; outros terminais não foram testados.",
-        f"OCR inviável no app real: similaridade média {f1(a3['fid']['mean_ratio'], 2)} (0% exatas).",
+        f"OCR inviável no app real: similaridade média {f1(a3['fid']['mean_ratio'], 2)} ({a3['fid']['exact_pct']:.0f}% exatas).",
         "App de brinquedo em ncurses, não 3270/5250; não representa modo bloco nem emulador proprietário.",
         "Fase B: os subagentes rodaram sem aprovação manual de comandos e tinham acesso a arquivos com as respostas. Foi proibido por instrução, sem prova técnica de que não leram; o oráculo confirma as ações, não a origem dos `claims`.",
         f"Custo da Fase B: contexto final de cerca de {mil(round(tok_all, -3) if tok_all else None)} tokens por caso; o consumo real (centenas de milhares de tokens por repetição, quase todo leitura de cache) e o custo estimado estão em CUSTOS.md. Só 3 repetições por caso e um único agente (D4).",
+        "A Fase B foi medida antes da T-077, que mudou o app (só Enter valida ou grava) e o julgamento do C2 (exige código de saída 0). A Fase A foi refeita depois da T-077; a Fase B não foi.",
         "Ferramenta jovem (1.2.0 fixada); resultados valem para essa versão.",
     ):
         w(f"- {t}")
@@ -206,8 +211,8 @@ def render(a2: dict, a3: dict, b: dict) -> str:
 
 
 def generate(l2: Path | None = None, l3: Path | None = None, evid: Path = EVID, out: Path | None = None) -> Path:
-    l2 = Path(l2) if l2 else (evid / DEFAULT_L2 if (evid / DEFAULT_L2).exists() else latest_run(evid, "l2"))
-    l3 = Path(l3) if l3 else (evid / DEFAULT_L3 if (evid / DEFAULT_L3).exists() else latest_run(evid, "l3"))
+    l2 = Path(l2) if l2 else latest_run(evid, "l2")
+    l3 = Path(l3) if l3 else latest_run(evid, "l3")
     text = render(load_phase_a(l2), load_phase_a(l3), load_phase_b(evid))
     out = out or ROOT / "RESULTS.md"
     out.write_text(text, encoding="utf-8")

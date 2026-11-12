@@ -43,7 +43,11 @@ export TERM_KIND ENVF DIRECT DIR
 DISPLAY=":$NUM" setsid dbus-run-session -- bash -c '
   printf "DISPLAY=:2\nDBUS_SESSION_BUS_ADDRESS=%s\n" "$DBUS_SESSION_BUS_ADDRESS" > "$ENVF.tmp"
   /usr/libexec/at-spi-bus-launcher --launch-immediately --a11y=1 &
-  sleep 0.5
+  for _ in $(seq 50); do
+    dbus-send --session --print-reply --dest=org.freedesktop.DBus /org/freedesktop/DBus \
+      org.freedesktop.DBus.NameHasOwner string:org.a11y.Bus 2>/dev/null | grep -q true && break
+    sleep 0.1
+  done
   marco &
   if [ "$DIRECT" = 1 ]; then
     if [ "$TERM_KIND" = xterm ]; then

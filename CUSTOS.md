@@ -1,14 +1,14 @@
 # CUSTOS — Consumo de tokens e custo estimado da POC
 
-Versão 1 · 2026-11-12 · Tarefa T-074. Fotografia tirada às 19:07 UTC de 12/11/2026, antes do fechamento (T-071 a T-073). O trabalho feito depois dessa hora não está nas tabelas.
+Versão 2 · 2026-11-12 · Tarefas T-074 e T-076. Fotografia tirada às 19:48 UTC de 12/11/2026, depois do fechamento (T-045, T-071, T-073, T-077, T-078). O que a sessão principal fizer depois dessa hora, como escrever esta versão, não está nas tabelas.
 
 ## 1. Resumo
 
 | | |
 |---|---|
-| Tokens processados, no total | **54,9 milhões** |
-| Custo estimado em preço de API | **US$ 44,80** |
-| Sem cache de prompt, o mesmo trabalho custaria | US$ 224,00 (o cache economizou US$ 179,20, 80%) |
+| Tokens processados, no total | **71,1 milhões** |
+| Custo estimado em preço de API | **US$ 50,43** |
+| Sem cache de prompt, o mesmo trabalho custaria | US$ 282,94 (o cache economizou US$ 232,50, 82%) |
 | Custo por repetição da Fase B (um agente executando um caso) | **US$ 0,71 em média** (de US$ 0,50 a US$ 1,35) |
 | Parte do custo que é do orquestrador | 61% |
 
@@ -18,23 +18,23 @@ Versão 1 · 2026-11-12 · Tarefa T-074. Fotografia tirada às 19:07 UTC de 12/1
 
 | Grupo | Total de tokens | Tokens de saída | Custo estimado | % do custo |
 |---|---:|---:|---:|---:|
-| Sessão principal (orquestrador) | 30.946.953 | 153.182 | US$ 27,24 | 61% |
-| Fase B (agente de IA executando casos) | 12.140.342 | 88.133 | US$ 10,67 | 24% |
-| Construção da POC (subagentes de tarefa) | 11.771.819 | 191.964 | US$ 6,89 | 15% |
-| **Total** | **54.859.114** | **433.279** | **US$ 44,80** | |
+| Sessão principal (orquestrador) | 43.706.692 | 184.202 | US$ 30,88 | 61% |
+| Fase B (agente de IA executando casos) | 12.140.342 | 88.133 | US$ 10,67 | 21% |
+| Construção da POC (subagentes de tarefa) | 15.233.378 | 251.715 | US$ 8,88 | 18% |
+| **Total** | **71.080.412** | **524.050** | **US$ 50,43** | |
 
 Por modelo:
 
 | Modelo | Requisições | Entrada | Saída | Leitura de cache | Escrita de cache 5 min | Escrita de cache 1 h | Total de tokens | Custo estimado |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
 | `claude-fable-5-2` | 22 | 44 | 83.019 | 2.640.770 | 0 | 393.499 | 3.117.332 | US$ 12,68 |
-| `claude-opus-5-5` | 273 | 550 | 199.127 | 38.256.364 | 1.508.321 | 849.107 | 40.813.469 | US$ 25,97 |
-| `claude-sonnet-5-5` | 190 | 384 | 151.133 | 9.871.448 | 640.844 | 264.504 | 10.928.313 | US$ 6,15 |
-| **Total** | 485 | | | | | | **54.859.114** | **US$ 44,80** |
+| `claude-opus-5-5` | 305 | 614 | 230.147 | 50.923.906 | 1.508.321 | 910.220 | 53.573.208 | US$ 29,61 |
+| `claude-sonnet-5-5` | 245 | 498 | 210.884 | 12.962.166 | 951.820 | 264.504 | 14.389.872 | US$ 8,14 |
+| **Total** | 572 | | | | | | **71.080.412** | **US$ 50,43** |
 
 ## 3. Por subagente
 
-O modelo de cada subagente vem da definição do agente: os agentes `devsquad-*`, `python-senior` e `ubuntu-mate-doc` rodaram em `claude-sonnet-5-5`; `general-purpose` e `ai-solution-architect`, em `claude-opus-5-5`.
+O modelo de cada subagente vem da definição do agente: os agentes `devsquad-*` (inclusive `devsquad-reviewer` e `devsquad-lead`), `python-senior` e `ubuntu-mate-doc` rodaram em `claude-sonnet-5-5`; `general-purpose` e `ai-solution-architect`, em `claude-opus-5-5`.
 
 | Subagente | Tarefa | Tipo | Modelo | Requisições | Total de tokens | Saída | Custo estimado |
 |---|---|---|---|---:|---:|---:|---:|
@@ -49,8 +49,12 @@ O modelo de cada subagente vem da definição do agente: os agentes `devsquad-*`
 | T-060 Phase B cases | T-060 | `ai-solution-architect` | `claude-opus-5-5` | 15 | 1.103.863 | 34.830 | US$ 1,44 |
 | T-070 report.py and RESULTS.md | T-070 | `python-senior` | `claude-sonnet-5-5` | 9 | 388.467 | 12.869 | US$ 0,34 |
 | Fix cases/AGENT.md ambiguities | T-064 | `ai-solution-architect` | `claude-opus-5-5` | 8 | 306.013 | 8.623 | US$ 0,45 |
+| T-045 probes.py, T-027, T-075 | T-045, T-027, T-075 | `python-senior` | `claude-sonnet-5-5` | 16 | 969.569 | 22.979 | US$ 0,58 |
+| T-071 code review | T-071 | `devsquad-reviewer` | `claude-sonnet-5-5` | 16 | 1.240.729 | 18.583 | US$ 0,67 |
+| T-073 final README and docs | T-073 | `devsquad-lead` | `claude-sonnet-5-5` | 4 | 220.682 | 3.534 | US$ 0,24 |
+| T-077 non-blocking review fixes | T-077 | `python-senior` | `claude-sonnet-5-5` | 19 | 1.030.579 | 14.655 | US$ 0,50 |
 
-A Fase A (T-051) não aparece: ela é o harness em Python, sem modelo de IA. Custo de tokens: zero.
+A Fase A (T-051 e a nova rodada da T-078) não aparece: ela é o harness em Python, sem modelo de IA. Custo de tokens: zero.
 
 ## 4. Fase B: custo por caso
 
@@ -103,10 +107,10 @@ A escrita de cache custa 1,25 vez a entrada com validade de 5 minutos e 2 vezes 
 
 ## 6. Leituras
 
-1. **Quase todo o consumo é releitura de contexto.** 92% dos tokens são leitura de cache: a cada chamada de ferramenta, o modelo relê a conversa inteira. Só 0,8% dos tokens são de saída, mas eles respondem por cerca de 20% do custo. O cache de prompt é o que torna isso viável: sem ele, o custo seria 5 vezes maior.
+1. **Quase todo o consumo é releitura de contexto.** 94% dos tokens são leitura de cache: a cada chamada de ferramenta, o modelo relê a conversa inteira. Só 0,7% dos tokens são de saída, mas eles respondem por cerca de 22% do custo. O cache de prompt é o que torna isso viável: sem ele, o custo seria quase 6 vezes maior.
 2. **O custo de um caso cresce com o número de passos, não com a dificuldade.** C1 (só leitura, 5 requisições) custa US$ 0,52; C5 (três formulários, 12 a 14 requisições) custa US$ 0,94. Cada requisição relê de 80 a 100 mil tokens de contexto.
-3. **O orquestrador é o maior gasto (61%).** A sessão principal acumulou o planejamento, a coordenação dos 26 subagentes e o papel de operador da Fase B. Ela passa de 30 milhões de tokens, porque o contexto dela é longo e relido a cada passo.
-4. **Subagentes em `claude-sonnet-5-5` saíram baratos.** Os 11 subagentes de construção custaram US$ 6,89 no total. A mais cara, as sondagens P2–P8, custou US$ 1,25.
+3. **O orquestrador é o maior gasto (61%).** A sessão principal acumulou o planejamento, a coordenação dos 30 subagentes e o papel de operador da Fase B. Ela passa de 43 milhões de tokens, porque o contexto dela é longo e relido a cada passo.
+4. **Subagentes de construção saíram baratos.** Os 15 subagentes de construção, quase todos em `claude-sonnet-5-5`, custaram US$ 8,88 no total. O mais caro, a escrita dos casos da Fase B em `claude-opus-5-5`, custou US$ 1,44.
 5. **Correção de um número registrado antes.** O `evidence/phase-b-ledger.tsv` e a primeira versão do `RESULTS.md` falavam em "cerca de 95 mil tokens por caso". Esse número é o tamanho do contexto final do subagente, não o consumo. O consumo real é de 400 mil a 1,2 milhão de tokens por repetição. O `RESULTS.md` foi corrigido para apontar para este documento.
 
 ## 7. Projeção

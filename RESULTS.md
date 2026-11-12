@@ -28,7 +28,7 @@ Regra (PRD seção 8):
 | Terminal | mate-terminal |
 | Entrada | I2 (`type --headed`, `press --window-id`) |
 | Timeout por passo | 5,0 s |
-| Execuções Fase A | L2 `20261112-113612`, L3 `20261112-112535` (10 repetições por cenário) |
+| Execuções Fase A | L2 `20261112-162519`, L3 `20261112-163758` (10 repetições por cenário) |
 | Execuções Fase B | `evidence/B-*` (Claude Code como subagente sem contexto) |
 
 ## 3. Matriz de viabilidade (sondagens P2-P7, G0)
@@ -46,30 +46,30 @@ Mate-terminal sem tmux: L2 exata contra a tela falsa (P8b). Não feito: qualquer
 
 ## 4. Fase A (sem IA)
 
-### L2 (área de transferência) — `20261112-113612`
+### L2 (área de transferência) — `20261112-162519`
 
 | Cenário | Sucesso | Duração média (s) | Leituras | Exatas | Similaridade média |
 |---|---|---|---|---|---|
-| C1 | 10/10 | 1,9 | 10 | 10 | 1,00 |
-| C2 | 10/10 | 13,7 | 40 | 40 | 1,00 |
+| C1 | 10/10 | 2,0 | 10 | 10 | 1,00 |
+| C2 | 10/10 | 14,6 | 40 | 40 | 1,00 |
 | C3 | 10/10 | 15,7 | 20 | 20 | 1,00 |
-| C4 | 10/10 | 10,1 | 20 | 20 | 1,00 |
-| C5 | 10/10 | 28,6 | 30 | 30 | 1,00 |
+| C4 | 10/10 | 10,0 | 20 | 20 | 1,00 |
+| C5 | 10/10 | 28,4 | 30 | 30 | 1,00 |
 
 Fidelidade global: 120 leituras, similaridade média 1,00, igualdade exata em 100,0%.
 Contagem de `error_code`: nenhum.
 
-### L3 (screenshot + OCR) — `20261112-112535`
+### L3 (screenshot + OCR) — `20261112-163758`
 
 | Cenário | Sucesso | Duração média (s) | Leituras | Exatas | Similaridade média |
 |---|---|---|---|---|---|
-| C1 | 10/10 | 0,7 | 10 | 0 | 0,00 |
-| C2 | 10/10 | 9,1 | 40 | 0 | 0,48 |
-| C3 | 10/10 | 13,7 | 20 | 0 | 0,50 |
+| C1 | 10/10 | 0,6 | 10 | 0 | 0,16 |
+| C2 | 10/10 | 9,6 | 40 | 0 | 0,48 |
+| C3 | 10/10 | 13,9 | 20 | 0 | 0,50 |
 | C4 | 10/10 | 8,0 | 20 | 0 | 0,54 |
-| C5 | 10/10 | 25,8 | 30 | 0 | 0,53 |
+| C5 | 10/10 | 26,1 | 30 | 0 | 0,53 |
 
-Fidelidade global: 120 leituras, similaridade média 0,46, igualdade exata em 0,0%.
+Fidelidade global: 120 leituras, similaridade média 0,48, igualdade exata em 0,0%.
 Contagem de `error_code`: nenhum.
 
 O sucesso de cada cenário é julgado pelo oráculo (tmux e arquivo de dados), não pela leitura; por isso L3 passa nos cenários mesmo sem servir como leitura.
@@ -99,7 +99,7 @@ Médias de custo excluem linhas com NA (interrompidas por limite de uso): 1 repe
 
 | ID | Estado | Evidência |
 |---|---|---|
-| H1 leitura do texto | **Parcial** | L1 refutada (nó `Terminal` sem texto). L2 confirmada: 100,0% exatas em 120 leituras. L3 inviável: similaridade 0,46, 0,0% exatas |
+| H1 leitura do texto | **Parcial** | L1 refutada (nó `Terminal` sem texto). L2 confirmada: 100,0% exatas em 120 leituras. L3 inviável: similaridade 0,48, 0,0% exatas |
 | H2 envio de texto e teclas | **Confirmada, com ressalva** | `type`/`press` sem `--headed` ou sem foco não entregam; com `--headed` e foco, chegam (P5 e Fase A). Entrada física |
 | H3 agente completa os cenários | **Confirmada** | 15/15 casos pelo oráculo, em linguagem natural |
 | H4 repetibilidade | **Confirmada** | Fase A: 50/50 (L2) e 50/50 (L3), sem `error_code`. Fase B só tem 3 repetições por caso |
@@ -110,10 +110,11 @@ Médias de custo excluem linhas com NA (interrompidas por limite de uso): 1 repe
 - Entrada física (`--headed`) depende de foco; sem foco o agent-desktop recusa o envio.
 - Só display isolado (Xephyr). A sessão real não foi medida; a sondagem P8 é parcial. Na sessão real a leitura sobrescreve a área de transferência do usuário.
 - Só mate-terminal (VTE). O xterm é invisível ao agent-desktop; outros terminais não foram testados.
-- OCR inviável no app real: similaridade média 0,46 (0% exatas).
+- OCR inviável no app real: similaridade média 0,48 (0% exatas).
 - App de brinquedo em ncurses, não 3270/5250; não representa modo bloco nem emulador proprietário.
 - Fase B: os subagentes rodaram sem aprovação manual de comandos e tinham acesso a arquivos com as respostas. Foi proibido por instrução, sem prova técnica de que não leram; o oráculo confirma as ações, não a origem dos `claims`.
 - Custo da Fase B: contexto final de cerca de 95.000 tokens por caso; o consumo real (centenas de milhares de tokens por repetição, quase todo leitura de cache) e o custo estimado estão em CUSTOS.md. Só 3 repetições por caso e um único agente (D4).
+- A Fase B foi medida antes da T-077, que mudou o app (só Enter valida ou grava) e o julgamento do C2 (exige código de saída 0). A Fase A foi refeita depois da T-077; a Fase B não foi.
 - Ferramenta jovem (1.2.0 fixada); resultados valem para essa versão.
 
 ## 8. Onde o resultado se aplica e fase 2

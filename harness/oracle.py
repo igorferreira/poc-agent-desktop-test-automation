@@ -13,6 +13,7 @@ from harness.screen import normalize
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data" / "clientes.dat"
 SEED = ROOT / "app" / "seed" / "clientes.dat"
+EXIT_FILE = ROOT / "bin" / "cadcli.exit"  # gravado por app/run.sh quando o app termina
 
 
 def capture(socket="cadcli", target="cadcli") -> list[str]:
@@ -58,6 +59,14 @@ def message(screen: list[str]) -> str:
 def session_alive(socket="cadcli", session="cadcli") -> bool:
     return subprocess.run(["tmux", "-L", socket, "has-session", "-t", session],
                           capture_output=True).returncode == 0
+
+
+def exited_ok() -> bool:
+    """True se o app terminou com codigo 0 (saida normal); False se caiu, foi morto ou ainda roda."""
+    try:
+        return EXIT_FILE.read_text().strip() == "0"
+    except OSError:
+        return False
 
 
 def read_data(path=DATA) -> list[str]:

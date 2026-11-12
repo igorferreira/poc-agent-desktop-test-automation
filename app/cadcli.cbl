@@ -132,12 +132,14 @@ TELA-MENU.
     IF WS-KEY = 1003
         MOVE "S" TO WS-FIM
     ELSE
+        IF WS-KEY = 0
         EVALUATE WS-OPCAO
             WHEN "1" PERFORM INCLUI
             WHEN "2" PERFORM CONSULTA
             WHEN "9" MOVE "S" TO WS-FIM
             WHEN OTHER MOVE "OPCAO INVALIDA" TO WS-MSG
         END-EVALUATE
+        END-IF
     END-IF.
 
 INCLUI.
@@ -151,7 +153,8 @@ INCLUI.
         EVALUATE WS-KEY
             WHEN 1003 MOVE "S" TO WS-VOLTA
             WHEN 1012 INITIALIZE WS-REG
-            WHEN OTHER PERFORM VALIDA-GRAVA
+            WHEN 0 PERFORM VALIDA-GRAVA
+            WHEN OTHER CONTINUE
         END-EVALUATE
     END-PERFORM
     MOVE SPACES TO WS-MSG.
@@ -204,7 +207,8 @@ CONSULTA.
         MOVE SPACES TO C-NOME C-CPF C-CIDADE C-UF WS-MSG
         IF WS-KEY = 1003
             MOVE "S" TO WS-VOLTA
-        ELSE
+        END-IF
+        IF WS-VOLTA NOT = "S" AND WS-KEY = 0
             MOVE C-COD TO R-COD
             PERFORM BUSCA
             IF WS-ACHOU = 0

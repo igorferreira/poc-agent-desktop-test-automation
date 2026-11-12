@@ -10,7 +10,7 @@ from harness.ad import build_env, load_display_env
 ROOT = launcher.ROOT
 
 CLAIMS = {  # TEST-PLAN secao 6; texto comparado em maiusculas, espacos colapsados
-    "C1": {"titulo": "CADASTRO DE CLIENTES", "opcoes": ["INCLUIR", "CONSULTAR", "SAIR"]},
+    "C1": {"titulo": "CADASTRO DE CLIENTES", "opcoes": ["1-INCLUIR", "2-CONSULTAR", "9-SAIR"]},
     "C2": {"telas": ["T01", "T02", "T01"]},
     "C3": {"mensagem": "CLIENTE INCLUIDO"},
     "C4": {"nome": "MARIA DA SILVA", "cpf": "11111111111", "cidade": "RIO DE JANEIRO", "uf": "RJ",
@@ -28,7 +28,7 @@ def _dedup(xs):
 
 
 def check_claims(cid, claims) -> list[str]:
-    """Lista de divergencias (vazia = confere). Opcoes de C1: cada esperada aparece em alguma declarada.
+    """Lista de divergencias (vazia = confere). Titulo e opcoes de C1: iguais (normalizados), opcoes na ordem da tela.
     Telas de C2: ignora repeticoes consecutivas (T01, T02, T02, T01 vale)."""
     want, errs = CLAIMS[cid], []
     for k, v in want.items():
@@ -36,11 +36,10 @@ def check_claims(cid, claims) -> list[str]:
         if got is None:
             errs.append(f"claim ausente: {k}")
         elif k == "titulo":
-            if v not in _n(got):
+            if not isinstance(got, str) or _n(got) != v:
                 errs.append(f"titulo: {got!r}")
         elif k == "opcoes":
-            g = [_n(x) for x in got] if isinstance(got, list) else []
-            if len(g) != len(v) or not all(any(e in x for x in g) for e in v):
+            if not isinstance(got, list) or [_n(x) for x in got] != v:
                 errs.append(f"opcoes: {got!r}")
         elif k == "telas":
             g = _dedup([_n(x) for x in got]) if isinstance(got, list) else []

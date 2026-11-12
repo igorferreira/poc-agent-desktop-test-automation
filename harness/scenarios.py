@@ -51,7 +51,7 @@ C2 = [("abrir-inclusao", [T("1"), K("ENTER")], sid("T02"), True),
       ("digitar-codigo", [T("000123")], has(4, "000123"), True),
       ("cancelar", [K("F12")], allof(sid("T02"), hasnt(4, "000123")), True),
       ("voltar", [K("F3")], sid("T01"), True),
-      ("sair", [T("9"), K("ENTER")], lambda s: not oracle.session_alive(), False)]
+      ("sair", [T("9"), K("ENTER")], lambda s: not oracle.session_alive() and oracle.exited_ok(), False)]
 C3 = [("abrir-inclusao", [T("1"), K("ENTER")], sid("T02"), False),
       ("codigo", [T("000100"), K("TAB")], has(4, "000100"), False),
       ("nome-backspace", [T("ANA TESTEX"), K("BACKSPACE"), K("TAB")],
@@ -80,8 +80,8 @@ SCENARIOS = {"C1": C1, "C2": C2, "C3": C3, "C4": C4, "C5": C5}
 def final_state(cid: str) -> tuple[bool, str]:
     """Estado final esperado (TEST-PLAN secao 4). Usado pelo harness e por `verify`."""
     if cid == "C2":
-        return (not oracle.session_alive() and oracle.data_equals_seed(),
-                "app encerrado e dados iguais ao seed")
+        return (not oracle.session_alive() and oracle.exited_ok() and oracle.data_equals_seed(),
+                "app encerrado com codigo 0 e dados iguais ao seed")
     try:
         tela = oracle.capture()
     except subprocess.CalledProcessError:
