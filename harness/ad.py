@@ -92,9 +92,18 @@ def load_display_env(path=None) -> dict:
 
 
 def build_env(display_env: dict, *, base=None, allow_real_session=False) -> dict:
-    """Ambiente para o binario. Recusa DISPLAY != :2 sem allow_real_session=True."""
-    if display_env.get("DISPLAY") != ":2" and not allow_real_session:
+    """Ambiente para o binario. Recusa DISPLAY != :2 e D-Bus ausente/igual ao da sessao real
+    (sem allow_real_session=True): sem D-Bus proprio o AT-SPI do usuario seria alcancavel."""
+    base = os.environ if base is None else base
+    if allow_real_session:
+        return {**base, **display_env}
+    if display_env.get("DISPLAY") != ":2":
         raise ValueError(
             f"DISPLAY={display_env.get('DISPLAY')!r} nao e o display isolado ':2'; "
             "use allow_real_session=True so com autorizacao do Igor")
-    return {**(os.environ if base is None else base), **display_env}
+    bus = display_env.get("DBUS_SESSION_BUS_ADDRESS")
+    if not bus or bus in (base.get("DBUS_SESSION_BUS_ADDRESS"), f"unix:path=/run/user/{os.getuid()}/bus"):
+        raise ValueError("DBUS_SESSION_BUS_ADDRESS ausente ou igual ao da sessao real; recusado")
+    env = {**base, **display_env}
+    env.pop("AT_SPI_BUS_ADDRESS", None)  # a lib o prefere ao D-Bus da sessao
+    return env

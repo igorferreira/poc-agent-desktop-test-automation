@@ -87,4 +87,10 @@ def test_guarda_display(tmp_path):
         build_env({"DISPLAY": ":0"}, base={})
     with pytest.raises(ValueError):
         build_env({}, base={})
+    with pytest.raises(ValueError, match="DBUS"):  # sem D-Bus proprio herdaria o da sessao real
+        build_env({"DISPLAY": ":2"}, base={"DBUS_SESSION_BUS_ADDRESS": "unix:path=/real"})
+    with pytest.raises(ValueError, match="DBUS"):
+        build_env({"DISPLAY": ":2", "DBUS_SESSION_BUS_ADDRESS": "unix:path=/real"},
+                  base={"DBUS_SESSION_BUS_ADDRESS": "unix:path=/real"})
+    assert "AT_SPI_BUS_ADDRESS" not in build_env(d, base={"AT_SPI_BUS_ADDRESS": "x"})
     assert build_env({"DISPLAY": ":0"}, base={}, allow_real_session=True) == {"DISPLAY": ":0"}

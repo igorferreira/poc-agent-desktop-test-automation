@@ -95,11 +95,12 @@ Feita com tela falsa, antes do app COBOL. Cada sondagem grava os envelopes em `e
 | ID | Tarefa | Pronto quando | Agente | Papel | Depende | Status |
 |---|---|---|---|---|---|---|
 | T-070 | `report.py` e `RESULTS.md` | Matriz de viabilidade, métricas das duas fases, limitações | python-senior | Desenvolvimento Python | T-052, T-062 | DONE |
-| T-071 | Revisão de código do app e do harness | Sem achado bloqueante em aberto | devsquad-reviewer | Revisão | T-070 | DOING |
+| T-071 | Revisão de código do app e do harness | Sem achado bloqueante em aberto | devsquad-reviewer | Revisão | T-070 | DONE (aprovado; 2 bloqueantes corrigidos) |
 | T-072 | Veredito GO, GO com ressalvas ou NO-GO, e proposta de fase 2 | Seção de veredito no `RESULTS.md`, aprovada por Igor | devsquad-strategy | Estratégia | T-070 | TODO |
-| T-073 | Documentação de uso final (README; AGENTS.md com os comandos reais) | Outra pessoa reproduz a POC seguindo o README | devsquad-lead | Liderança técnica | T-071 | TODO |
+| T-073 | Documentação de uso final (README; AGENTS.md com os comandos reais) | Outra pessoa reproduz a POC seguindo o README | devsquad-lead | Liderança técnica | T-071 | DOING |
 | T-074 | `CUSTOS.md`: consumo de tokens e custo estimado de toda a POC, a partir dos registros da sessão | Tabelas por modelo, grupo, subagente e caso, com premissas e scripts para refazer | devsquad-lead | Liderança técnica | T-062 | DONE |
 | T-075 | Revisão de texto do `RESULTS.md` (o gerador escreve sem acentos) | `harness/report.py` gera texto acentuado | python-senior | Desenvolvimento Python | T-070 | DONE |
+| T-077 | Achados não bloqueantes da revisão T-071 (lista em "Achados", 2026-11-12) | Cada item corrigido ou aceito com justificativa | python-senior | Desenvolvimento Python | T-071 | TODO |
 | T-076 | Atualizar `CUSTOS.md` com o consumo das tarefas de fechamento (T-071 a T-073) | Fotografia final do custo | devsquad-lead | Liderança técnica | T-073 | TODO |
 
 ## Achados
@@ -139,3 +140,5 @@ Registrar aqui, com data, o que a execução descobrir e que mude o plano.
 - 2026-11-12 — T-074: o número "tokens do subagente" que o Claude Code mostra ao fim de cada subagente (cerca de 95 mil na Fase B) é o tamanho do contexto final, não o consumo. O consumo real, somado pelos registros da sessão, foi de 400 mil a 1,3 milhão de tokens por repetição da Fase B. `RESULTS.md` corrigido. Total da POC até 19:07 UTC: 54,9 milhões de tokens, cerca de US$ 44,80 em preço de API (detalhes em CUSTOS.md).
 - 2026-11-12 — T-074: os subagentes `devsquad-*`, `python-senior` e `ubuntu-mate-doc` rodaram em `claude-sonnet-5-5`, pela definição de cada agente; os `general-purpose` e `ai-solution-architect`, em `claude-opus-5-5`.
 - 2026-11-12 — T-045: `python3 -m harness probe` reproduziu a matriz do G0 sem divergência (P2–P8a). P8b, mate-terminal sem tmux: L2 exata (24/24) contra a saída esperada da tela falsa. P7 desta vez: 0,912. Uma execução só, sem medida de flakiness. Suíte completa: 27 testes passam, mais o de integração com display.
+- 2026-11-12 — T-071, corrigidos: (1) `harness/ad.py` `build_env` só conferia `DISPLAY`; um arquivo de ambiente sem D-Bus herdaria o barramento da sessão real. Agora exige D-Bus próprio e remove `AT_SPI_BUS_ADDRESS`. (2) `scripts/display-down.sh` matava PIDs do arquivo sem validar; agora confere o nome do processo. Conferido com `env up`/`env down` e o teste de integração: sem processo órfão. (3) `.claude/` no `.gitignore`. (4) `report.py`: fidelidade abaixo do limiar agora dá NO-GO, como no PRD §8 (antes dava "GO com ressalvas").
+- 2026-11-12 — T-071, não corrigidos (T-077): frases fixas do `report.py` que não acompanham os dados; execuções padrão fixas no `report.py`; no C2, app que cai também passa como "saiu"; `check_claims` tolerante demais em C1; `convert` e `tesseract` sem timeout; `sleep 0.5` no `display-up.sh`; no COBOL, tecla fora de F3/F12 (ex.: ESC) tenta gravar.

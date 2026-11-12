@@ -92,10 +92,8 @@ def verdict(a2: dict, b: dict) -> dict:
     a_ok = all(v["passed"] / v["reps"] >= LIM_A for v in a2["sc"].values())
     f_ok = (a2["fid"]["exact_pct"] or 0) >= LIM_FID
     b_ok = bool(b) and all(v["passed"] / v["total"] >= LIM_B for v in b.values())
-    if not (a_ok and f_ok and b_ok):
-        nome = "NO-GO" if not (a_ok and b_ok) else "GO com ressalvas"
-    else:
-        nome = "GO com ressalvas"
+    # PRD §8: NO-GO se a entrada não é confiável ou nenhuma leitura atinge o limiar de fidelidade.
+    nome = "GO com ressalvas" if (a_ok and f_ok and b_ok) else "NO-GO"
     return {"nome": nome, "a_ok": a_ok, "f_ok": f_ok, "b_ok": b_ok}
 
 
