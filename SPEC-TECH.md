@@ -122,19 +122,132 @@ O servidor tmux usa socket próprio (`-L cadcli`) e não lê a configuração do
 
 ## 6. Contrato com o agent-desktop
 
-Verificado no README e no `--help` da versão 1.0.2:
+Conferido em 2026-11-12 contra a versão 1.2.0 (pacote global `package.json` = 1.2.0). Fontes e o que cada marca significa:
 
-- Cada comando imprime um envelope JSON: `{"version", "ok", "command", "data"}` ou `error` com `code` e `disposition`.
-- Refs pertencem ao snapshot que as criou (`@s8f3k2p9:e8`). Ref solta (`@e8`) dá `INVALID_ARGS`. Se a interface mudou, a ação devolve `STALE_REF` ou `AMBIGUOUS_TARGET`: tirar novo snapshot.
-- Repetir um comando só quando `error.disposition.retry` for `safe`.
-- Sem `--headed`, ações de ref usam a API de acessibilidade, sem mover ponteiro nem tomar foco. `--headed` libera entrada física.
-- `type`, `set-value` e `clipboard-set` aceitam `--stdin`.
-- O diretório de estado (`~/.agent-desktop`) precisa ser privado (`chmod 700`), senão `snapshot` falha com `INTERNAL`.
-- No Linux, `press` e teclas de texto funcionam em X11; `focus-window` exige X11.
+- **[G]** guia embutido no binário 1.2.0 (`skills get desktop`, `platform` e referências do Linux; lido direto do arquivo `bin/agent-desktop-linux-x64` do pacote, sem executar nada). Conta como verificado.
+- **[F]** definição de flags no código-fonte do ramo `main` do repositório (`src/cli_args/*.rs`). Pode ser posterior à 1.2.0. **Não executei `--help`** (T-013 sem shell): conferir cada linha de comando com `agent-desktop <comando> --help` antes de usar, uma vez, na primeira sondagem.
 
-Comandos que a POC usa: `status`, `version`, `list-apps`, `list-windows`, `focus-window`, `snapshot`, `find`, `get`, `type`, `press`, `wait`, `clipboard-get`, `clipboard-clear`, `screenshot`, `session`, `trace`, `skills`.
+O CHANGELOG da 1.2.0 não lista mudança de Linux, de `press`, `screenshot`, `wait` nem de terminal desde a 1.0.2. Mudanças que importam: envelope passou a 2.6 e refs de controles idênticos podem dar `AMBIGUOUS_TARGET` (1.1.0); `type --interval-ms` (1.1.0); `--stdin` em `type`, `set-value` e `clipboard-set` e o comando `mcp` (1.2.0).
 
-**Regra para quem implementa:** não inventar flags. Antes de usar um comando, rodar `agent-desktop <comando> --help` na versão fixada. Ler também:
+### 6.1 Regras gerais
+
+- [G] Cada comando imprime um envelope JSON com `ok` e `data`, ou `error` com `code`, `message`, `suggestion` e às vezes `details`, `recovery`, `disposition`. Código de saída: 0 sucesso, 1 erro estruturado, 2 erro de argumento. O campo `version` do envelope é a versão do esquema (2.6), não a da ferramenta. Ignorar chaves desconhecidas.
+- [G] `disposition` tem `delivery` e `retry`. Ação bem-sucedida: `data.disposition` (`delivered_verified` ou `delivered_unverified`) e `data.steps` (cada mecanismo tentado, `semantic_api` ou `physical_synthetic`). Erro: `error.disposition`. **Só `not_delivered` é seguro repetir** (`retry: safe`). Qualquer outro valor: ler o estado antes de decidir. Comandos de observação não têm `disposition` no sucesso; seus erros e todo `INVALID_ARGS` trazem `not_delivered` e `safe`.
+- [G] Refs são qualificadas (`@s8f3k2p9:e8`) e valem para o snapshot que as criou. Ref solta (`@e8`) dá `INVALID_ARGS`. `STALE_REF`: tirar novo snapshot. `AMBIGUOUS_TARGET`: controles idênticos, repetir não adianta.
+- [G] Sem `--headed`, ações de ref são semânticas (AT-SPI), sem mover ponteiro nem trocar a janela ativa. `--headed` é flag global (`agent-desktop --headed type ...`) e libera entrada física: no X11 usa XTEST e fica `physical_synthetic`, `verified: false`.
+- [G] `press` é sempre entrada física de teclado, com ou sem `--headed`.
+- [G] No X11 não há dependência externa (`xdotool`, `xclip`, `wmctrl` não são usados). A ferramenta lê `WAYLAND_DISPLAY`, `DISPLAY` e `XDG_RUNTIME_DIR`.
+- [G] Estado em `~/.agent-desktop` (ou `AGENT_DESKTOP_HOME`, caminho absoluto) precisa ser privado (`chmod 700`), senão `snapshot` falha com `INTERNAL`. O lock de entrada fica em `/tmp/agent-desktop-<uid>/` e serializa entrada por usuário (`TIMEOUT` com `lock_timeout`: outro agente está digitando).
+- [G] `window-id` tem a forma `w-<id>`, é opaco e deixa de valer quando o processo do app reinicia: rodar `list-windows` de novo depois de reiniciar o terminal.
+- [G] Barramento privado, sem tocar o da sessão: `XDG_RUNTIME_DIR=$(mktemp -d) dbus-run-session -- agent-desktop status`. O guia diz para nunca reiniciar o barramento de quem não é seu.
+
+### 6.2 Comandos e flags
+
+| Comando | Forma verificada | Fonte |
+|---|---|---|
+| `status` | `agent-desktop status`. Mostra plataforma, permissões, `supported_surfaces` (vazio = barramento AT-SPI não respondeu), `state_root` | G |
+| `version` | `agent-desktop version` | G |
+| `skills` | `skills`, `skills get <nome> [referência] [--full]`, `skills path`. Nomes: `desktop`, `platform`, `linux`, `ffi`, `jev`; referência como `references/capture-and-clipboard.md` ou só o nome base | G, F |
+| `list-apps` | `list-apps [--app NOME] [--timeout-ms MS]`. Os nomes que imprime são os aceitos em `--app` | G, F |
+| `list-windows` | `list-windows [--app NOME] [--timeout-ms MS]`. `--app` é igualdade exata sem diferenciar caixa. **Não há filtro por título**: filtrar o JSON. Linhas: `id`, `title`, `app_name`, `pid`, `bounds`, `is_focused`, `accessible` (e no Linux `visible`). A focada vem primeiro | G, F |
+| `focus-window` | `focus-window [--window-id ID] [--app NOME] [--title TEXTO]` (título por trecho). Exige ao menos um. Só vale se `_NET_ACTIVE_WINDOW` nomeia a janela e o app a reporta ativa; senão `ACTION_FAILED` | G, F |
+| `snapshot` | `snapshot [--app NOME] [--window-id ID] [-i] [--compact] [--skeleton] [--root REF] [--surface S] [--max-depth N] [--timeout-ms MS] [--include-bounds]`. Confira `data.complete`. Com `--app` sem `--window-id` e mais de uma janela: `AMBIGUOUS_TARGET` | G, F |
+| `find` | `find [--app] [--window-id] [--role R] [--name N] [--value V] [--text T] [--exact] [--root REF] [--first\|--last\|--nth N\|--limit N\|--count] [--timeout-ms MS]`. `textarea`, `textbox` e `searchfield` viram `textfield`. Se o filtro de papel não casa, `data.roles_present` lista os papéis da árvore | G, F |
+| `get` | `get REF [--property text\|value\|title\|bounds\|role\|states]`; padrão `text`. Valor ausente: `null` | G, F |
+| `type` | `type REF TEXTO [--timeout-ms MS] [--interval-ms MS]` e `type REF --stdin` (até 10.000 bytes). **A ref é obrigatória**: não há `type` sem ref | G, F |
+| `press` | `press COMBO [--app NOME] [--window-id ID] [--force]`. Sem `--app` nem `--window-id`, vai para a janela em foco | G, F |
+| `wait` | `wait MS`; `wait --element REF --predicate exists\|enabled\|visible\|actionable\|value [--value V] [--action click\|type\|set-value\|clear]`; `wait --window TÍTULO [--app]`; `wait --text TEXTO [--app] [--count N]`; `wait --menu`; `wait --event window-opened\|window-closed\|app-launched\|app-terminated\|focus-changed\|surface-appeared\|surface-dismissed [--app] [--window-id]`; `--timeout MS` (padrão 30000) | G, F |
+| `clipboard-get` | `clipboard-get [--format text\|auto\|image\|file-urls] [--out CAMINHO]`. Texto: `{"type":"text","text":...}`; vazio: `{"type":"text","found":false}` | G, F |
+| `clipboard-set` | `clipboard-set TEXTO` ou `clipboard-set --stdin` (até 128 KiB) | G, F |
+| `clipboard-clear` | `clipboard-clear`. No X11 encerra o processo auxiliar dono da seleção | G |
+| `screenshot` | `screenshot [--app NOME] [--window-id ID] [--screen N] [CAMINHO]`. Com `CAMINHO` grava o PNG; sem ele devolve base64 em `data`. Não há flag de tempo limite | G, F |
+| `session` | `session start [--name N] [--no-trace] [--screenshots]`, `session end [ID]`, `session list`, `session gc [--older-than S] [--ended]`. Ativar em outros comandos com `--session ID` ou `AGENT_DESKTOP_SESSION`. `--screenshots` grava PNG sem redação | G, F |
+| `trace` | `trace show [--limit N] [--event PREFIXO]`, `trace export [--out ARQ.html] [--limit N]`. Flags globais `--trace CAMINHO` e `--trace-strict`. Campos sensíveis (`text`, `value`, `name`, `title`) saem como `{"redacted":true}` | G, F |
+| `mcp` | `agent-desktop mcp` serve cada comando como ferramenta MCP por stdio (`desktop_snapshot`, `desktop_press`...). Flags globais dadas a `mcp` (`--session`, `--headed`, `--trace`) valem para toda chamada. Novo na 1.2.0 | G |
+
+Flags globais: `--headed`, `--session ID`, `--agent-id`, `--trace`, `--trace-strict`, `-w/--wait-for "papel:texto"`, `--wait-for-gone`, `--wait-timeout MS` (padrão 30000). `--wait-for` só vale em `snapshot`, `press` e ações de ref.
+
+### 6.3 Teclas do `press`
+
+[G] Nomes no Linux: `return` (Enter), `tab`, `delete` (**é Backspace**), `forwarddelete` (tecla Delete), `escape`, `space`, `home`, `pageup`, `f1` a `f24`, `up`, `down`, `left`, `right`. Caractere único é a própria tecla. Letra maiúscula sozinha vira `shift+minúscula`. Modificadores: `ctrl`, `alt`, `shift`, `meta`/`super`. Nome desconhecido: `INVALID_ARGS` com a lista aceita, nada enviado.
+
+| Tecla do CADCLI | Argumento de `press` |
+|---|---|
+| Enter | `return` |
+| Tab | `tab` |
+| Backspace | `delete` |
+| F3 | `f3` |
+| F12 | `f12` |
+
+Combinações bloqueadas com `POLICY_DENIED` (só passam com `--force`): `alt+f4`, `alt+tab`, `alt+f2`, `meta+l`, `meta+d`, `meta+tab`, `super` sozinha, `ctrl+alt+t`, `ctrl+alt+delete`, `ctrl+alt+backspace`, `ctrl+alt+l`, `ctrl+alt+f1` a `f12`. Nenhuma das teclas do CADCLI está na lista. `ctrl+shift+a` e `ctrl+shift+c` (L2) não estão na lista. Nunca usar `--force` na POC.
+
+### 6.4 Terminal na árvore (continua sem texto)
+
+[G] O nó do terminal é `textfield` de nome `Terminal`, com só a ação `RightClick`, e o `value` é `null`. O guia diz literalmente que a ref não lê a saída do terminal e manda verificar o efeito por arquivo ou outro app. `type` sem `--headed` nesse nó dá `POLICY_DENIED` (check `supported_action`); o nó só recebe teclas com `--headed`. Isso é igual ao que o guia 1.0.2 dizia: a 1.2.0 não mudou nada aqui. L1 segue em risco; só a sondagem P3 mostra se algum outro nó da árvore do mate-terminal expõe o texto.
+
+### 6.5 Entrada: o que o guia garante
+
+- [G] `type REF TEXTO` com `--headed` manda teclas físicas (XTEST no X11). Exige a janela `active` e o alvo (ou seu editor interno comprovado) com foco; sem foco: `ACTION_FAILED` com `check: target_focus` ou `window_active`, e `physical_delivery_started: false` quer dizer que nada foi enviado.
+- [G] No X11, `type` físico **recusa caractere de controle, inclusive Tab e nova linha**, antes de enviar qualquer coisa. Enter e Tab sempre por `press return` e `press tab`.
+- [G] `press` sem ref funciona direto na janela em foco. Escopado sem `--headed` (`--app` ou `--window-id`), só entrega se o alvo já tem o foco; com `--window-id` exige o foco exato daquela janela e, se não confirma, devolve `STALE_REF` com `check: exact_window_focus`, sem enviar tecla. Com `--headed` e `--app` ou `--window-id`, no X11, a ferramenta ativa a janela e envia.
+- [G] `press` sempre reporta `delivered_unverified`: entrega não prova efeito. Verificar pelo oráculo.
+- [G] Janela em outra área de trabalho: `focus-window` troca a área de trabalho do usuário. Na sessão real isso é efeito visível.
+
+### 6.6 Linhas de comando por uso da POC
+
+`$W` = `window-id` da janela CADCLI, `$T` = ref do nó `Terminal` de um snapshot recente. Todas assumem `agent-desktop` 1.2.0; trocar por `npx -y agent-desktop@1.2.0` se a global não for 1.2.0.
+
+```bash
+# janela CADCLI (P2). Nunca list-windows sem --app: lista título de janelas de outros apps
+W=$(agent-desktop list-windows --app mate-terminal \
+  | jq -r '.data.windows[] | select(.title | contains("CADCLI")) | .id')   # forma do JSON a confirmar em P2
+
+# foco e guarda (G): confirmar que a ativa é a CADCLI antes de cada envio --headed
+agent-desktop focus-window --window-id "$W"
+agent-desktop list-windows --app mate-terminal | jq -e --arg w "$W" \
+  '.data.windows[0] | .id == $w and .is_focused'   # focada vem primeiro; abortar se falhar
+
+# L1: leitura por árvore (P3)
+agent-desktop snapshot --window-id "$W" -i --compact
+agent-desktop find --window-id "$W" --role textfield --name Terminal --first   # devolve a ref $T
+agent-desktop get "$T" --property text      # esperado null (ver 6.4)
+agent-desktop get "$T" --property value
+
+# L2: selecionar tudo + copiar + ler (P6). Atalhos do mate-terminal a confirmar
+agent-desktop --headed press ctrl+shift+a --window-id "$W"
+agent-desktop --headed press ctrl+shift+c --window-id "$W"
+agent-desktop clipboard-get --format text
+agent-desktop clipboard-clear
+
+# L3: captura da janela + OCR (P7)
+agent-desktop screenshot --window-id "$W" evidence/<run_id>/screens/<passo>.png
+tesseract evidence/<run_id>/screens/<passo>.png stdout --psm 6
+
+# I1: sem --headed (P4). Esperado POLICY_DENIED, check supported_action
+agent-desktop type "$T" "1"
+
+# I2: com --headed (P5)
+agent-desktop --headed type "$T" "000123"      # texto sem Tab nem nova linha
+agent-desktop --headed press tab    --window-id "$W"
+agent-desktop --headed press return --window-id "$W"
+agent-desktop --headed press delete --window-id "$W"   # Backspace
+agent-desktop --headed press f3     --window-id "$W"
+agent-desktop --headed press f12    --window-id "$W"
+# I2b, sem ref: um caractere por press (letra maiúscula sai como shift+letra, espaço é "space")
+agent-desktop --headed press 1 --window-id "$W"
+
+# espera (G): por texto só se L1 funcionar; senão sondar o oráculo
+agent-desktop wait --text "CLIENTE INCLUIDO" --window-id "$W" --timeout 5000   # --window-id em wait --text: a confirmar; hoje documentado só com --app
+agent-desktop wait --event window-opened --app mate-terminal --timeout 10000
+
+# sessão e rastro
+agent-desktop session start --name poc
+agent-desktop --session "$SID" trace show --limit 50
+```
+
+Cada linha acima segue os guias [G] ou o fonte [F]; o encaixe `--headed press ... --window-id` e o formato exato do JSON de `list-windows` ainda não foram executados.
+
+**Regra para quem implementa:** não inventar flags. Antes de usar um comando, rodar `agent-desktop <comando> --help` na versão fixada (as marcas [F] acima são o que mais precisa dessa conferência). Ler também:
 
 ```bash
 agent-desktop skills get desktop
@@ -151,8 +264,8 @@ agent-desktop skills get agent-desktop-linux references/troubleshooting.md
 | ID | Estratégia | Estado |
 |---|---|---|
 | L1 | `snapshot` da janela e `get` de texto ou valor no nó do terminal | **Em risco:** o guia Linux diz que o `value` do nó `Terminal` é nulo. Sondagem P3 decide |
-| L2 | Selecionar tudo e copiar no terminal (itens do menu Editar via ref, ou atalho), depois `clipboard-get` | A validar. Na sessão real sobrescreve a área de transferência do usuário |
-| L3 | `screenshot` da janela + `tesseract` (Fase A) ou visão do LLM (Fase B) | A validar. Sai do espírito "sem screenshot" da ferramenta |
+| L2 | Selecionar tudo e copiar no terminal (itens do menu Editar via ref, ou `press ctrl+shift+a` e `ctrl+shift+c`), depois `clipboard-get` | A validar. Na sessão real sobrescreve a área de transferência do usuário. Nenhum comando novo da 1.2.0 faz isso por conta própria |
+| L3 | `screenshot --window-id $W CAMINHO` + `tesseract` (Fase A) ou visão do LLM (Fase B) | A validar. Sai do espírito "sem screenshot" da ferramenta. Com gerenciador sem composição (o `marco` pode estar assim), janela coberta falha com `ACTION_FAILED` `reason: covered`: focar antes. Gerenciador com composição captura coberta e minimizada |
 
 Fora do `agent-desktop`, só como oráculo e baseline: `tmux capture-pane -p`.
 
@@ -161,7 +274,8 @@ Fora do `agent-desktop`, só como oráculo e baseline: `tmux capture-pane -p`.
 | ID | Estratégia | Estado |
 |---|---|---|
 | I1 | `type` em ref, sem `--headed` | Espera-se `POLICY_DENIED` (guia Linux). Registrar o código obtido |
-| I2 | `--headed` com `type` para texto e `press` para Enter, Tab, Backspace, F3, F12 | Caminho esperado. Exige foco na janela |
+| I2 | `--headed type REF` para texto e `press` (`return`, `tab`, `delete`, `f3`, `f12`) para o resto | Caminho esperado. Exige foco na janela. `type` exige ref do nó `Terminal` e recusa Tab e nova linha no X11 (seção 6.5) |
+| I2b | `--headed press <caractere> --window-id $W`, um caractere por chamada, sem ref | Recuo se `type` em ref falhar por foco. Mais lento (um processo por tecla; `batch` agrupa). Ajuste da 1.2.0: `press` escopado por `--window-id` só entrega se aquela janela tem o foco exato, o que serve de guarda extra para a regra 2 da seção 11 |
 
 **Normalização para comparar telas:** 24 linhas, remover espaços à direita de cada linha, manter linhas vazias. Fidelidade = igualdade exata; registrar também a razão de similaridade (`difflib.SequenceMatcher`).
 
@@ -239,8 +353,13 @@ Há apps sensíveis abertos na sessão real (gerenciador de senhas, mensageiros,
 
 ## 14. Não verificado
 
-- Flags exatas de cada comando na versão 1.2.0.
-- Funcionamento do `agent-desktop` em display Xephyr.
-- Nome e atalho dos itens "Selecionar tudo" e "Copiar" no `mate-terminal`.
+- Saída real de `--help` na 1.2.0: as flags da seção 6 vêm dos guias embutidos [G] e do fonte do `main` [F]; rodar `--help` de cada comando uma vez e corrigir a seção 6 se divergir (em especial `focus-window --title`, `wait --text` com `--window-id`, `screenshot --window-id`).
+- Nome do app do `mate-terminal` em `list-apps` (valor exato para `list-windows --app`) e forma do JSON de `list-windows` (`data.windows[]`?). Se o `mate-terminal` mudar o título da janela depois de aberto (o tmux ou o app podem emitir título), o filtro por `CADCLI` quebra. Sondagem P2.
+- Se `focus-window` funciona sem `--headed` (um trecho do guia mostra `--headed focus-window`, outro não). P2/P5.
+- Se o nó `Terminal` do `mate-terminal` está `focused` e `active` a ponto de `--headed type REF` passar na checagem de foco; senão cai em I2b. P5.
+- Se algum outro nó do `mate-terminal` expõe o texto da tela, apesar de o guia dizer `value` nulo. P3.
+- Funcionamento do `agent-desktop` em display Xephyr (o guia confirma barramento privado com `dbus-run-session`, mas não Xephyr; `focus-window` precisa de EWMH, que o `marco` deveria dar).
+- Nome e atalho dos itens "Selecionar tudo" e "Copiar" no `mate-terminal` (`ctrl+shift+a` e `ctrl+shift+c` são o palpite) e se o `clipboard-get` lê a seleção que o VTE serve. P6.
+- Se o `marco` compõe janelas (define se `screenshot` de janela coberta funciona). P7.
 - Passagem de F3 e F12 pela cadeia terminal → tmux → GnuCOBOL.
 - Códigos de `CRT STATUS` no build do GnuCOBOL do Ubuntu.

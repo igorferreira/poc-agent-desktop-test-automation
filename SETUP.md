@@ -39,11 +39,13 @@ agent-desktop version      # esperado: 1.2.0
 agent-desktop status       # esperado: ok true, accessibility granted
 ```
 
-O diretório de estado `~/.agent-desktop` precisa ser privado, senão `snapshot` falha com `INTERNAL`. Ele ainda não existe nesta máquina. Depois do primeiro comando que o criar:
+O diretório de estado `~/.agent-desktop` precisa ser privado, senão `snapshot` falha com `INTERNAL`. Criado em 2026-11-12 com:
 
 ```bash
-chmod 700 ~/.agent-desktop
+mkdir -m 700 ~/.agent-desktop
 ```
+
+O npm 11 não roda o `postinstall` por padrão: o `agent-desktop` funciona pelo launcher Node (cerca de 125 ms a mais por chamada). Para linkar o binário nativo: `npm install -g agent-desktop@1.2.0 --allow-scripts=agent-desktop`.
 
 Não atualizar a versão no meio da POC. Se for inevitável, registrar em "Achados" no TASKS.md e repetir as sondagens.
 
@@ -74,42 +76,32 @@ Nesta máquina a variável `GITHUB_TOKEN` tem um token inválido e o `gh` a usa 
 env -u GITHUB_TOKEN gh <comando>
 ```
 
-## 6. Display isolado (tarefa T-014, a validar)
+## 6. Display isolado (tarefa T-014, verificado em 2026-11-12)
 
 Decisão D3: tentar primeiro o display isolado. Ele não toma o teclado da sessão real, tem área de transferência própria e não tem atalhos globais.
 
-As flags abaixo existem nos binários desta máquina (verificado). A receita completa, e o `agent-desktop` funcionando dentro dela, ainda não foram testados.
+Receita verificada, empacotada em dois scripts:
 
 ```bash
-# 1. Servidor X aninhado. Sem -ac, para manter o controle de acesso.
-Xephyr :2 -screen 1024x768 -br -noreset -title CADCLI-DISPLAY &
-
-# 2. Sessão tmux com o app (ou com a tela falsa, na fase F2). Ver SPEC-TECH seção 5.
-
-# 3. Barramento D-Bus próprio, AT-SPI, gerenciador de janelas e terminal.
-DISPLAY=:2 dbus-run-session -- bash -c '
-  echo "$DBUS_SESSION_BUS_ADDRESS" > "$XDG_RUNTIME_DIR/cadcli-dbus.addr"
-  /usr/libexec/at-spi-bus-launcher --launch-immediately --a11y=1 &
-  marco &
-  mate-terminal --disable-factory --title=CADCLI --geometry=80x24 \
-    -e "tmux -L cadcli attach -t cadcli"
-'
-```
-
-`--disable-factory` faz o `mate-terminal` abrir um processo novo em vez de reaproveitar o da sessão real. Sem isso a janela pode abrir no `DISPLAY=:0`.
-
-Para o `agent-desktop` falar com esse display, e não com a sessão real:
-
-```bash
-export DISPLAY=:2
-export DBUS_SESSION_BUS_ADDRESS="$(cat "$XDG_RUNTIME_DIR/cadcli-dbus.addr")"
+scripts/display-up.sh [--terminal mate-terminal|xterm]   # padrão: mate-terminal
+source "$XDG_RUNTIME_DIR/cadcli-display.env"             # DISPLAY=:2 e DBUS_SESSION_BUS_ADDRESS isolado
 agent-desktop status
-agent-desktop list-apps      # deve listar só o terminal do display isolado
+agent-desktop list-apps      # só o terminal do :2 (e o marco); nada da sessão real
+agent-desktop list-windows   # janela com title "CADCLI" e seu id
+scripts/display-down.sh      # derruba Xephyr + sessão D-Bus (PIDs em $XDG_RUNTIME_DIR/cadcli-display.pids); não toca no tmux
 ```
+
+O que o `display-up.sh` faz: `Xephyr :2` (sem `-ac`), depois, em sessão própria (`setsid dbus-run-session`), `at-spi-bus-launcher --launch-immediately --a11y=1`, `marco` e o terminal com título `CADCLI`, 80x24, rodando `tmux -L cadcli attach -t cadcli`. Se a sessão tmux `cadcli` não existir, cria uma provisória com `bash`.
+
+Achados verificados:
+
+- Nenhuma configuração extra de acessibilidade foi necessária (sem gsettings, sem `GTK_MODULES` próprio). O `mate-terminal` aparece no AT-SPI do barramento isolado.
+- `--disable-factory` é necessário no `mate-terminal` para não reaproveitar o processo da sessão real.
+- **`xterm` não expõe AT-SPI**: a janela `CADCLI` existe no X (`xwininfo`), mas `list-apps` só mostra o `marco` e `list-windows` devolve `[]`. Serve para o oráculo (tmux), não para o `agent-desktop`. Use `mate-terminal`.
+- Se a sessão tmux provisória for criada de dentro de um shell efêmero, ela morre junto; o script usa `setsid tmux`.
+- Se a sessão D-Bus cair (terminal fechou), `list-apps` falha com `PLATFORM_NOT_SUPPORTED` apontando um `/tmp/dbus-*` inexistente.
 
 Critério de pronto: `status` saudável e `list-apps` mostrando o terminal do display `:2` e nenhum app da sessão real. Se `list-apps` mostrar apps da sessão real, o comando está no barramento errado: parar e corrigir antes de qualquer outro comando.
-
-Derrubar: fechar a janela do terminal encerra a sessão D-Bus; depois encerrar o `Xephyr` e rodar `tmux -L cadcli kill-server`.
 
 ## 7. Sessão real (recuo)
 
