@@ -74,14 +74,14 @@ Feita com tela falsa, antes do app COBOL. Cada sondagem grava os envelopes em `e
 | ID | Tarefa | Pronto quando | Agente | Papel | Depende | Status |
 |---|---|---|---|---|---|---|
 | T-050 | `scenarios.py`: C1–C5 com julgamento pelo oráculo | Cada cenário passa ao menos uma vez | devsquad-qa | QA | T-041 a T-044 | DONE |
-| T-051 | Rodar 10 repetições por cenário, por estratégia viável | `summary.json` com taxas de sucesso e fidelidade | devsquad-qa | QA | T-050 | DOING |
-| T-052 | Analisar falhas e flakiness por `error.code` | Causas anotadas em "Achados" | devsquad-qa | QA | T-051 | TODO |
+| T-051 | Rodar 10 repetições por cenário, por estratégia viável | `summary.json` com taxas de sucesso e fidelidade | devsquad-qa | QA | T-050 | DONE |
+| T-052 | Analisar falhas e flakiness por `error.code` | Causas anotadas em "Achados" | devsquad-qa | QA | T-051 | DONE (nenhuma falha nem erro em 100 execuções) |
 
 ## F6 — Fase B (agente de IA)
 
 | ID | Tarefa | Pronto quando | Agente | Papel | Depende | Status |
 |---|---|---|---|---|---|---|
-| T-060 | Instruções do agente e `cases/C1.md` a `C5.md` | Um agente sem contexto prévio entende o caso só com os arquivos | ai-solution-architect | Arquitetura de IA | T-051 | DOING (antecipada: casos em Markdown não dependem do resultado de T-051) |
+| T-060 | Instruções do agente e `cases/C1.md` a `C5.md` | Um agente sem contexto prévio entende o caso só com os arquivos | ai-solution-architect | Arquitetura de IA | T-051 | DONE (validação real na T-062) |
 | T-061 | `harness verify` | Julga um caso pelo oráculo, sem depender do agente | python-senior | Desenvolvimento Python | T-042 | DONE |
 | T-062 | Rodar os cinco casos com a IA escolhida em D4, 3 repetições, via CLI | Resultados e custo registrados | devsquad-qa | QA | T-060, T-061 | TODO |
 | T-063 | Opcional: repetir via MCP ou com uma segunda IA | Resultados registrados | devsquad-qa | QA | T-062 | TODO |
@@ -123,3 +123,7 @@ Registrar aqui, com data, o que a execução descobrir e que mude o plano.
 - 2026-11-12 — F3: campo numérico vazio mostra zeros (`000000`), não `_`. Ao repintar depois de um erro, espaço dentro de campo preenchido aparece como `_` (`UF_ERRADA`): o oráculo não deve comparar NOME literal em tela de erro. Mensagem extra `CADASTRO CHEIO` (100 registros), não testada.
 - 2026-11-12 — F4: causa da "queda sozinha" da sessão isolada: a tela falsa morria com `curses.error` quando o terminal anexava e o pane ficava menor que 24 linhas. O launcher agora fixa `window-size manual` e `resize-window -x 80 -y 24`. Com `status` do tmux ligado, a leitura L2 perde a primeira linha.
 - 2026-11-12 — F4: leitura L2 completa (menus e `clipboard-get`) leva cerca de 1,8 s; os 45 ms do G0 eram só o `clipboard-get`. Integração com a tela falsa: L2 exata (24/24). L3: similaridade 0,86, 0 linhas iguais, porque o `tesseract` descarta linhas vazias e espaços duplos.
+- 2026-11-12 — T-060: o agente da Fase B não deve dar `source` no env do display: `scripts/ad2.sh` compara o D-Bus herdado com o do display e recusaria. As respostas dos `claims` estão em SCREENS.md, TEST-PLAN.md e `harness/`; `cases/AGENT.md` proíbe ler esses arquivos, mas só a disciplina do agente garante isso. O estado final no oráculo continua sendo a prova das ações.
+- 2026-11-12 — T-060: se a leitura L2 falhar no meio, o menu Editar pode ficar aberto e capturar a próxima tecla. `cases/AGENT.md` proíbe enviar tecla antes de uma leitura completa.
+- 2026-11-12 — Fase A, L2 (`evidence/20261112-113612`): C1–C5 10/10 cada; 120 leituras, 100% exatas; nenhum `error_code`. Duração média: C1 1,9 s, C2 13,7 s, C3 15,7 s, C4 10,1 s, C5 28,6 s.
+- 2026-11-12 — Fase A, L3 (`evidence/20261112-112535`): C1–C5 10/10 cada (o julgamento é pelo oráculo); 120 leituras, similaridade média 0,46, 0% exatas. No app COBOL o OCR é muito pior que na tela falsa (0,86): L3 não serve como leitura.
