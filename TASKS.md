@@ -83,8 +83,8 @@ Feita com tela falsa, antes do app COBOL. Cada sondagem grava os envelopes em `e
 |---|---|---|---|---|---|---|
 | T-060 | Instruções do agente e `cases/C1.md` a `C5.md` | Um agente sem contexto prévio entende o caso só com os arquivos | ai-solution-architect | Arquitetura de IA | T-051 | DONE (validação real na T-062) |
 | T-061 | `harness verify` | Julga um caso pelo oráculo, sem depender do agente | python-senior | Desenvolvimento Python | T-042 | DONE |
-| T-062 | Rodar os cinco casos com a IA escolhida em D4, 3 repetições, via CLI | Resultados e custo registrados | devsquad-qa | QA | T-060, T-061 | TODO |
-| T-063 | Opcional: repetir via MCP ou com uma segunda IA | Resultados registrados | devsquad-qa | QA | T-062 | TODO |
+| T-062 | Rodar os cinco casos com a IA escolhida em D4, 3 repetições, via CLI | Resultados e custo registrados | devsquad-qa | QA | T-060, T-061 | DONE |
+| T-063 | Opcional: repetir via MCP ou com uma segunda IA | Resultados registrados | devsquad-qa | QA | T-062 | SKIP (opcional; não pedido) |
 
 ## F7 — Fechamento
 
@@ -127,3 +127,5 @@ Registrar aqui, com data, o que a execução descobrir e que mude o plano.
 - 2026-11-12 — T-060: se a leitura L2 falhar no meio, o menu Editar pode ficar aberto e capturar a próxima tecla. `cases/AGENT.md` proíbe enviar tecla antes de uma leitura completa.
 - 2026-11-12 — Fase A, L2 (`evidence/20261112-113612`): C1–C5 10/10 cada; 120 leituras, 100% exatas; nenhum `error_code`. Duração média: C1 1,9 s, C2 13,7 s, C3 15,7 s, C4 10,1 s, C5 28,6 s.
 - 2026-11-12 — Fase A, L3 (`evidence/20261112-112535`): C1–C5 10/10 cada (o julgamento é pelo oráculo); 120 leituras, similaridade média 0,46, 0% exatas. No app COBOL o OCR é muito pior que na tela falsa (0,86): L3 não serve como leitura.
+- 2026-11-12 — Fase B (T-062), Claude Code como subagente sem contexto, 3 repetições por caso: 15/15 passaram no `verify` (estado do oráculo e `claims`). Custo por repetição: 90–99 mil tokens do subagente, 5–14 chamadas de ferramenta, 40–139 s. Registro em `evidence/phase-b-ledger.tsv`. A C5 r3 foi interrompida por limite de uso da API e retomada; tempo e tokens dela não contam.
+- 2026-11-12 — Fase B: os subagentes rodaram comandos sem aprovação manual do operador (o `OPERADOR.md` previa aprovar cada um). Nenhum relatou leitura fora do permitido; o oráculo confirma o estado, mas não prova que o agente não leu arquivos proibidos.
