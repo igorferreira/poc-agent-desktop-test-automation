@@ -15,7 +15,7 @@ class FocusError(RuntimeError):
 
 
 def _run(session, argv, timeout=15.0):
-    return run_ad(argv, binary=session.binary, env=session.env, timeout=timeout)
+    return run_ad(argv, binary=session.binary, env=session.env, timeout=timeout, **(session.trace or {}))
 
 
 def focus_guard(session, timeout=3.0):

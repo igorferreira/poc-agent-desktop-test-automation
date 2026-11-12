@@ -293,22 +293,23 @@ Cada cenário declara o estado esperado (trecho de tela e, quando couber, linha 
 ## 9. Harness
 
 ```bash
-python3 -m harness env up [--display isolated|real] [--terminal mate-terminal|xterm]
+python3 -m harness env up [--display isolated] [--terminal mate-terminal|xterm]   # exige bin/cadcli (app/build.sh)
 python3 -m harness env down
-python3 -m harness probe [P2 ... P8]
-python3 -m harness run [--scenario C3] [--reps 10] [--read L1|L2|L3]
-python3 -m harness verify C3        # oráculo para a Fase B
-python3 -m harness report           # gera RESULTS.md
+python3 -m harness run [--scenario C3] [--reps 1] [--read l2|l3] [--timeout 5]    # sem --scenario: C1-C5
+python3 -m harness verify C3 --result evidence/<run_id>/agent-result.json         # sai 0 se passou, 1 se não
+python3 -m harness report           # não implementado (sai 2)
 ```
+
+`--display real` é recusado. `run` usa o ambiente já no ar; cada passo espera por condição no oráculo (timeout padrão 5 s, registrado em `meta.json`). Nos passos [L] a leitura (L2 padrão) só alimenta a fidelidade. `verify` julga o estado final (oráculo) e compara `claims` com o TEST-PLAN §6 (texto em maiúsculas; C1 `opcoes` por trecho; C2 `telas` ignora repetições consecutivas, esperado T01, T02, T01). `probe` (sondagens) ainda não está no CLI.
 
 **Evidência**, em `evidence/<run_id>/`:
 
 - `meta.json`: versão do `agent-desktop`, terminal, display, estratégias, data.
 - `steps.jsonl`: uma linha por comando: `ts`, `scenario`, `rep`, `step`, `argv`, `ok`, `error_code`, `duration_ms`.
-- `screens/<passo>.read.txt` e `screens/<passo>.oracle.txt`.
+- `screens/<cenario>-<rep>-<passo>.read.txt` e `.oracle.txt` (só nos passos [L]; `.oracle.txt` também no passo que estourou o timeout).
 - `summary.json`: aprovação por cenário e repetição, fidelidade, contagem de erros.
 
-Antes de cada repetição: restaurar `data/clientes.dat` a partir do seed e reiniciar o app.
+Antes de cada repetição: `app/reset.sh` e reiniciar o app (`respawn-pane`). Se a sessão tmux morreu (C2 encerra o app), o harness refaz tmux, display e janela (o `window-id` muda).
 
 ## 10. Sondagens (fase F2)
 

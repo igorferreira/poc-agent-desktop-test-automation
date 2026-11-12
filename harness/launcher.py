@@ -20,6 +20,7 @@ class Session:
     env: dict
     app_name: str = "mate-terminal"
     binary: str = "agent-desktop"  # troca-se por binario falso nos testes
+    trace: dict | None = None  # {"steps_path","scenario","rep","step"}: se presente, run_ad registra em steps.jsonl
 
 
 def _tmux(*args, check=True):

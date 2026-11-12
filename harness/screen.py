@@ -26,7 +26,7 @@ def fidelity(read: list[str], oracle: list[str]) -> dict:
 
 
 def _ad(session, argv, timeout=15.0):
-    e = run_ad(argv, binary=session.binary, env=session.env, timeout=timeout)
+    e = run_ad(argv, binary=session.binary, env=session.env, timeout=timeout, **(getattr(session, "trace", None) or {}))
     if not e.ok:
         raise RuntimeError(f"agent-desktop {' '.join(argv)}: {e.error_code} {e.error_message}")
     return e

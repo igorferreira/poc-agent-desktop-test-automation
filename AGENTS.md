@@ -4,7 +4,18 @@ Este repositório é uma POC: descobrir se o `agent-desktop` (Vercel Labs) serve
 
 ## Estado atual
 
-Fase F0 (planejamento). **Ainda não existe código**: nem o app, nem o harness, nem comando de build ou de teste. Os comandos planejados estão no [SPEC-TECH.md](SPEC-TECH.md), seções 4, 5 e 9. Quando passarem a existir, liste-os aqui. Não invente comando que não existe.
+Existem o app COBOL (`app/`), a tela falsa e o harness (`harness/`). Comandos reais, a partir da raiz:
+
+```bash
+app/build.sh                                  # compila bin/cadcli (cobc)
+app/reset.sh                                  # restaura data/clientes.dat a partir do seed
+python3 -m pytest -q tests/test_ad.py tests/test_screen.py tests/test_keys.py tests/test_oracle.py
+python3 -m harness env up | env down          # tmux -L cadcli + Xephyr :2 + mate-terminal rodando app/run.sh
+python3 -m harness run [--scenario C3] [--reps N] [--read l2|l3]   # evidence/<run_id>/
+python3 -m harness verify C3 --result evidence/<run_id>/agent-result.json
+```
+
+`harness report` e `harness probe` ainda não existem. Não rode `tests/test_fake_screen.py` nem `tests/test_integration_display.py` com o ambiente no ar (mesma sessão tmux). Detalhes em [SPEC-TECH.md](SPEC-TECH.md) seção 9.
 
 O estado de cada tarefa está no [TASKS.md](TASKS.md).
 

@@ -64,7 +64,7 @@ Feita com tela falsa, antes do app COBOL. Cada sondagem grava os envelopes em `e
 |---|---|---|---|---|---|---|
 | T-040 | `ad.py`: executar o `agent-desktop`, interpretar envelope, gravar `steps.jsonl` | Testes unitários de envelope de sucesso e de erro passam | python-senior | Desenvolvimento Python | T-013 | DONE |
 | T-041 | `launcher.py`: `env up` e `env down`, descoberta do `window-id` | Ambiente sobe e desce sem processos órfãos | python-senior | Desenvolvimento Python | T-040, T-014 | DONE |
-| T-042 | `oracle.py`: tela pelo tmux e conferência de `clientes.dat` | Testes unitários com telas de referência passam | python-senior | Desenvolvimento Python | T-032 | TODO |
+| T-042 | `oracle.py`: tela pelo tmux e conferência de `clientes.dat` | Testes unitários com telas de referência passam | python-senior | Desenvolvimento Python | T-032 | DONE |
 | T-043 | `screen.py`: estratégias de leitura viáveis segundo G0, normalização, fidelidade | Testes unitários de normalização e fidelidade passam | python-senior | Desenvolvimento Python | T-040, T-028 | DONE |
 | T-044 | `keys.py`: envio de texto e teclas com guarda de foco | Envio abortado quando a janela ativa não é a CADCLI (teste) | python-senior | Desenvolvimento Python | T-040, T-028 | DONE |
 | T-045 | `probes.py`: automatizar P2–P8 | `python3 -m harness probe` reproduz a matriz de G0 | python-senior | Desenvolvimento Python | T-043, T-044 | TODO |
@@ -73,16 +73,16 @@ Feita com tela falsa, antes do app COBOL. Cada sondagem grava os envelopes em `e
 
 | ID | Tarefa | Pronto quando | Agente | Papel | Depende | Status |
 |---|---|---|---|---|---|---|
-| T-050 | `scenarios.py`: C1–C5 com julgamento pelo oráculo | Cada cenário passa ao menos uma vez | devsquad-qa | QA | T-041 a T-044 | TODO |
-| T-051 | Rodar 10 repetições por cenário, por estratégia viável | `summary.json` com taxas de sucesso e fidelidade | devsquad-qa | QA | T-050 | TODO |
+| T-050 | `scenarios.py`: C1–C5 com julgamento pelo oráculo | Cada cenário passa ao menos uma vez | devsquad-qa | QA | T-041 a T-044 | DONE |
+| T-051 | Rodar 10 repetições por cenário, por estratégia viável | `summary.json` com taxas de sucesso e fidelidade | devsquad-qa | QA | T-050 | DOING |
 | T-052 | Analisar falhas e flakiness por `error.code` | Causas anotadas em "Achados" | devsquad-qa | QA | T-051 | TODO |
 
 ## F6 — Fase B (agente de IA)
 
 | ID | Tarefa | Pronto quando | Agente | Papel | Depende | Status |
 |---|---|---|---|---|---|---|
-| T-060 | Instruções do agente e `cases/C1.md` a `C5.md` | Um agente sem contexto prévio entende o caso só com os arquivos | ai-solution-architect | Arquitetura de IA | T-051 | TODO |
-| T-061 | `harness verify` | Julga um caso pelo oráculo, sem depender do agente | python-senior | Desenvolvimento Python | T-042 | TODO |
+| T-060 | Instruções do agente e `cases/C1.md` a `C5.md` | Um agente sem contexto prévio entende o caso só com os arquivos | ai-solution-architect | Arquitetura de IA | T-051 | DOING (antecipada: casos em Markdown não dependem do resultado de T-051) |
+| T-061 | `harness verify` | Julga um caso pelo oráculo, sem depender do agente | python-senior | Desenvolvimento Python | T-042 | DONE |
 | T-062 | Rodar os cinco casos com a IA escolhida em D4, 3 repetições, via CLI | Resultados e custo registrados | devsquad-qa | QA | T-060, T-061 | TODO |
 | T-063 | Opcional: repetir via MCP ou com uma segunda IA | Resultados registrados | devsquad-qa | QA | T-062 | TODO |
 
