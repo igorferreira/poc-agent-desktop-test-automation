@@ -300,7 +300,12 @@ python3 -m harness verify C3 --result evidence/<run_id>/agent-result.json       
 python3 -m harness report [--phase-a-l2 DIR] [--phase-a-l3 DIR]   # gera RESULTS.md a partir de evidence/
 ```
 
-`--display real` é recusado. `run` usa o ambiente já no ar; cada passo espera por condição no oráculo (timeout padrão 5 s, registrado em `meta.json`). Nos passos [L] a leitura (L2 padrão) só alimenta a fidelidade. `verify` julga o estado final (oráculo) e compara `claims` com o TEST-PLAN §6 (texto em maiúsculas; C1 `opcoes` por trecho; C2 `telas` ignora repetições consecutivas, esperado T01, T02, T01). `probe` (sondagens) ainda não está no CLI.
+`--display real` é recusado. `run` usa o ambiente já no ar; cada passo espera por condição no oráculo (timeout padrão 5 s, registrado em `meta.json`). Nos passos [L] a leitura (L2 padrão) só alimenta a fidelidade. `verify` julga o estado final (oráculo) e compara `claims` com o TEST-PLAN §6 (texto em maiúsculas; C1 `opcoes` por trecho; C2 `telas` ignora repetições consecutivas, esperado T01, T02, T01). 
+```bash
+python3 -m harness probe [P2 ... P8]   # sem argumento: todas; evidence/probes-<run_id>/<sondagem>.json; sai 1 se algo divergir do G0
+```
+
+`probe` sobe e derruba o próprio ambiente (recusa rodar com a sessão `-L cadcli` no ar), usa a tela falsa e compara cada resultado (`funciona`/`nao`/`parcial`) com o esperado do G0. P8b roda a tela falsa direto no mate-terminal (`display-up.sh --direct`, sem tmux) e compara a L2 com a saída esperada da tela falsa. P8c não é implementada: exige autorização e execução manual (T-029).
 
 **Evidência**, em `evidence/<run_id>/`:
 
@@ -324,7 +329,7 @@ Feitas com uma tela falsa (script que imprime 24 linhas e ecoa teclas, dentro do
 | P5 | Com `--headed`: texto, Enter, Tab, Backspace, F3 e F12 chegam ao app (I2)? | **Feito:** sim. `--headed type` 3/3; `press` escopado por `--window-id` (com e sem `--headed`, janela focada) 15/15; `press --app` focado 15/15; `--headed press --app` 15/15. Janela NÃO focada, sem `--headed`: `press --window-id` dá `STALE_REF` (`exact_window_focus`) e `press --app` dá `ACTION_FAILED` (`window_active`), 0/15 enviadas, nada entregue. `disposition` sempre `delivered_unverified` |
 | P6 | L2 devolve a tela completa pela área de transferência? | **Feito:** sim, 6/6 com igualdade exata e razão 1.0 (menu Editar > Selecionar tudo > Copiar por `click` semântico, sem `--headed`; e `--headed press ctrl+shift+a`/`ctrl+shift+c`). `clipboard-get` em ~45 ms. Menu precisa abrir antes (`click` em `Editar`), senão item `offscreen` |
 | P7 | L3: `screenshot` + `tesseract` atinge que similaridade com o oráculo? | **Feito:** PNG 836x588. OCR `--psm 6`: bruto 0.859, recorte 0.902, recorte+2x+negativo+cinza 0.953 (14/23 linhas iguais). Nunca exato (confunde 0/O, 1/I, 3 em lugar de J etc.) |
-| P8 | Controles: `xterm`; terminal sem tmux; display isolado contra sessão real | **Parcial:** `xterm` invisível (`list-windows` `[]`, `list-apps` só `marco`). Mate-terminal sem tmux: não feito. Sessão real: pendente de autorização do Igor |
+| P8 | Controles: `xterm`; terminal sem tmux; display isolado contra sessão real | **Parcial:** `xterm` invisível (`list-windows` `[]`, `list-apps` só `marco`). Mate-terminal sem tmux: **feito (T-045)**, L2 exata contra a saída esperada da tela falsa. Sessão real: pendente de autorização do Igor |
 
 Saída: matriz estratégia × terminal × display, e o portão G0 do PRD.
 

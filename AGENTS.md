@@ -14,9 +14,10 @@ python3 -m harness env up | env down          # tmux -L cadcli + Xephyr :2 + mat
 python3 -m harness run [--scenario C3] [--reps N] [--read l2|l3]   # evidence/<run_id>/
 python3 -m harness verify C3 --result evidence/<run_id>/agent-result.json
 python3 -m harness report [--phase-a-l2 DIR] [--phase-a-l3 DIR]   # gera RESULTS.md
+python3 -m harness probe [P2 ... P8]          # sondagens com a tela falsa; evidence/probes-<run_id>/
 ```
 
-`harness report` existe (lê `evidence/`, escreve `RESULTS.md`); `harness probe` ainda não existe. Não rode `tests/test_fake_screen.py` nem `tests/test_integration_display.py` com o ambiente no ar (mesma sessão tmux). Detalhes em [SPEC-TECH.md](SPEC-TECH.md) seção 9.
+`harness report` existe (lê `evidence/`, escreve `RESULTS.md`); `harness probe` existe (sobe e derruba o próprio ambiente; P8c é manual, T-029). Não rode `tests/test_fake_screen.py` nem `tests/test_integration_display.py` com o ambiente no ar (mesma sessão tmux). Detalhes em [SPEC-TECH.md](SPEC-TECH.md) seção 9.
 
 O estado de cada tarefa está no [TASKS.md](TASKS.md).
 

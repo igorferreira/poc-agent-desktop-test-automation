@@ -48,13 +48,23 @@ def find_window_id(env, app_name="mate-terminal", title="CADCLI"):
     return ids[0] if len(ids) == 1 else None
 
 
-def env_up(terminal="mate-terminal", app_cmd=None, timeout=30.0) -> Session:
-    """Sobe tmux + display e devolve Session(window_id, env). Em falha, derruba o que subiu."""
+def env_up(terminal="mate-terminal", app_cmd=None, timeout=30.0, direct=False, wait_window=True) -> Session:
+    """Sobe tmux + display e devolve Session(window_id, env). Em falha, derruba o que subiu.
+
+    direct=True: sem tmux, o terminal roda a tela falsa direto (P8b). wait_window=False: devolve
+    Session(window_id=None) sem esperar a janela (P8a, xterm invisivel)."""
     if terminal not in TERMINAL_APP:
         raise ValueError(f"terminal invalido: {terminal!r}")
     if _tmux("has-session", "-t", SESSION, check=False).returncode == 0:
         raise RuntimeError("sessao tmux -L cadcli ja existe; rode env_down() antes")
     try:
+        if direct:
+            subprocess.run([str(SCRIPTS / "display-up.sh"), "--terminal", terminal, "--direct"],
+                           check=True, capture_output=True, text=True)
+            env = build_env(load_display_env())
+            app = TERMINAL_APP[terminal]
+            wid = _wait(lambda: find_window_id(env, app), timeout, "janela CADCLI")
+            return Session(window_id=wid, env=env, app_name=app)
         subprocess.run(
             ["setsid", "tmux", "-L", SOCKET, "-f", "/dev/null", "new-session", "-d", "-s", SESSION,
              "-x", "80", "-y", "24", app_cmd or DEFAULT_APP],
@@ -68,7 +78,7 @@ def env_up(terminal="mate-terminal", app_cmd=None, timeout=30.0) -> Session:
                        check=True, capture_output=True, text=True)
         env = build_env(load_display_env())
         app = TERMINAL_APP[terminal]
-        wid = _wait(lambda: find_window_id(env, app), timeout, "janela CADCLI")
+        wid = _wait(lambda: find_window_id(env, app), timeout, "janela CADCLI") if wait_window else None
         return Session(window_id=wid, env=env, app_name=app)
     except BaseException:
         env_down()

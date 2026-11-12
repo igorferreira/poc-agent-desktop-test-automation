@@ -1,4 +1,4 @@
-"""CLI do harness: python3 -m harness env up|down | run | verify | report."""
+"""CLI do harness: python3 -m harness env up|down | run | verify | report | probe."""
 import argparse
 import json
 import sys
@@ -98,6 +98,8 @@ def main(argv=None) -> int:
     rp = sub.add_parser("report")
     rp.add_argument("--phase-a-l2")
     rp.add_argument("--phase-a-l3")
+    pr = sub.add_parser("probe")
+    pr.add_argument("ids", nargs="*", help="P2 ... P8 (P8a, P8b, P8c); vazio = todas")
     a = p.parse_args(argv)
 
     if a.cmd == "env":
@@ -123,6 +125,9 @@ def main(argv=None) -> int:
         return 0 if all(d["passed"] == d["reps"] for d in s["scenarios"].values()) else 1
     if a.cmd == "verify":
         return cmd_verify(a)
+    if a.cmd == "probe":
+        from harness import probes
+        return probes.run(probes.expandir(a.ids))
     from harness import report
     print(report.generate(a.phase_a_l2, a.phase_a_l3))
     return 0

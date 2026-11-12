@@ -15,8 +15,9 @@ Data: 2026-11-12 · Tarefa T-028 · Base: sondagens P2–P7 (T-021 a T-026) e P8
 | I2 — `type --headed` no nó `Terminal` | **Funciona.** 3 de 3 | Não se aplica |
 | I2 — `press --window-id`, janela focada | **Funciona.** 15 de 15, com e sem `--headed` (`return`, `tab`, `delete`, `f3`, `f12`) | Não se aplica |
 | `press`, janela sem foco | Não entrega: `STALE_REF` (`exact_window_focus`) ou `ACTION_FAILED` (`window_active`). Nada é enviado | Não se aplica |
+| L2 — mate-terminal **sem tmux** (tela falsa direto no terminal; T-027/T-045, `evidence/probes-20261112-161334/P8b.json`) | **Funciona.** Leitura igual à saída esperada da tela falsa (24/24 linhas, similaridade 1,0). Sem oráculo tmux: a comparação é com a tela determinística da `fake_screen.py` | Não se aplica |
 
-Não feito: mate-terminal sem tmux, e qualquer medição na sessão real (exige autorização do Igor).
+Não feito: qualquer medição na sessão real (exige autorização do Igor).
 
 ## Leitura do resultado
 
