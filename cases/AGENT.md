@@ -11,7 +11,7 @@ Quem decide se o caso passou é um oráculo independente, não você. Seu trabal
 - O operador passou um `run_id` (exemplo: `B-C3-r1-20261112-150000`). Sem `run_id`, pare e peça.
 - Rode todo comando a partir da raiz do repositório (a pasta que contém `cases/`). Se o seu shell não guarda o diretório entre chamadas, comece cada comando com `cd <raiz> &&`.
 - Variáveis de shell podem não sobreviver entre chamadas. Por isso todo bloco abaixo começa definindo `W`. Cole o window-id literal em cada bloco.
-- Ignore o fluxo de tarefas do `AGENTS.md` (TASKS.md, DOING/DONE). Nesta execução você só executa o caso.
+- Arquivos auxiliares (scripts, notas, saídas salvas) só podem ir em `evidence/<run_id>/`. Em nenhum outro lugar.
 
 Primeiro comando do caso (marca o início e cria a pasta de evidência):
 
@@ -57,12 +57,14 @@ Opcional: o guia da ferramenta está em `scripts/ad2.sh skills get desktop`. Aju
 ## 4. Achar a janela (window-id)
 
 ```bash
-scripts/ad2.sh list-windows --app mate-terminal | jq -r '.data[] | select(.title == "CADCLI") | .id'
+scripts/ad2.sh list-windows --app mate-terminal | jq -r '"ok=\(.ok) erro=\(.error.code // "-")", (.data[]? | select(.title == "CADCLI") | .id)'
 ```
 
-- `data` é uma lista de janelas. A sua tem o título exato `CADCLI`.
-- Esperado: exatamente uma linha, no formato `w-...`. Esse é o `W`.
-- Zero linhas ou mais de uma: pare e avise o operador.
+- A primeira linha mostra `ok` e `error.code`. As demais são os ids das janelas com título exato `CADCLI`.
+- Sem janela nenhuma, `data` vem `null`. Por isso o `.data[]?`: com `.data[]` o `jq` quebra.
+- Esperado: exatamente uma linha de id, no formato `w-...`. Esse é o `W`.
+- Zero ids ou mais de um: pare e avise o operador.
+- Exceção: no C2, depois de sair do sistema, nenhuma janela `CADCLI` é o resultado esperado. Não é erro para parar. Grave o resultado.
 - Sempre `list-windows` com `--app mate-terminal`. Nunca sem `--app`.
 
 ## 5. Ler a tela
@@ -92,6 +94,7 @@ Como interpretar:
 
 - A saída é a tela, uma linha por linha, numerada pelo `cat -n`. Linha 1 é a primeira.
 - A tela tem 24 linhas. Se vierem menos, as que faltam estão vazias. Linha 24 vazia = sem mensagem.
+- O texto termina com uma quebra de linha, por isso o `cat -n` mostra uma 25ª linha vazia. Ignore-a, ou troque `| cat -n` por `| head -24 | cat -n`.
 - Saiu `null`, nada, ou `ERRO`: repita a leitura **uma** vez. Falhou de novo: pare (seção 8).
 - Se a leitura falhou no meio, o menu `Editar` pode ter ficado aberto. Não envie tecla nenhuma antes de uma leitura completa dar certo.
 - A área de transferência é do display isolado, por isso `clipboard-*` não leva `--window-id`. É a única exceção à regra do `--window-id`.
@@ -144,6 +147,7 @@ W='w-COLE-AQUI'; TEXTO='000100'
 
 - O texto não pode ter Tab nem nova linha. Tab e Enter são teclas (abaixo).
 - Campos numéricos (código, CPF) vão sempre com todos os dígitos: `000100`, não `100`.
+- Para trocar um valor já digitado no campo, digite de novo todos os dígitos: eles sobrescrevem o anterior. Em `T03`, um código novo de 6 dígitos substitui o anterior.
 
 ### Teclas
 
@@ -153,7 +157,7 @@ Teclas vão por `press` com `--window-id`, sem `--headed`.
 |---|---|
 | ENTER | `return` |
 | Tab (próximo campo) | `tab` |
-| Backspace (apaga à esquerda) | `delete` |
+| Backspace (apaga à esquerda) | `delete` (no `agent-desktop`, `delete` é o Backspace; verificado) |
 | F3 | `f3` |
 | F12 | `f12` |
 
@@ -174,6 +178,27 @@ W='w-COLE-AQUI'; TECLA='return'
 
 - Só essas cinco teclas. Nenhuma combinação (`ctrl+...`, `alt+...`). Nunca `--force`.
 - Você pode colocar vários envios num comando só, desde que cada envio tenha a própria guarda.
+- Pode definir a guarda como função de shell no mesmo comando e chamá-la antes de cada envio. Exemplo (Tab e depois ENTER):
+
+```bash
+W='w-COLE-AQUI'
+(
+  guarda() {
+    scripts/ad2.sh focus-window --window-id "$W" | jq -e '.ok == true' >/dev/null || return 1
+    for i in $(seq 20); do
+      scripts/ad2.sh list-windows --app mate-terminal \
+        | jq -e --arg w "$W" 'any(.data[]; .id == $w and .is_focused == true)' >/dev/null && return 0
+    done
+    return 1
+  }
+  guarda || { echo "ABORTAR: foco nao confirmado"; exit 1; }
+  scripts/ad2.sh press tab --window-id "$W"
+  guarda || { echo "ABORTAR: foco nao confirmado"; exit 1; }
+  scripts/ad2.sh press return --window-id "$W"
+)
+```
+
+  Para texto, a ordem é a mesma do bloco de texto: `guarda`, `find` do nó `Terminal`, `--headed type`.
 
 ### Como operar o app
 
@@ -221,15 +246,15 @@ Ao parar, grave mesmo assim o `agent-result.json` (seção 9), com o que você j
 Ao terminar (ou ao parar), grave `evidence/<run_id>/agent-result.json`:
 
 ```bash
-echo $(( $(date +%s) - $(cat evidence/<run_id>/t0) ))     # duration_s
-cat > evidence/<run_id>/agent-result.json <<'EOF'
+D=$(( $(date +%s) - $(cat evidence/<run_id>/t0) ))     # duration_s
+cat > evidence/<run_id>/agent-result.json <<EOF
 {
-  "case": "C3",
+  "case": "C<n>",
   "agent": "claude-code",
-  "model": "id do modelo que você é",
-  "claims": { "mensagem": "TEXTO LIDO NA TELA" },
-  "tool_calls": 0,
-  "duration_s": 0,
+  "model": "<identificador do modelo>",
+  "claims": { "<chave do C<n>.md>": "TEXTO LIDO NA TELA" },
+  "tool_calls": <numero>,
+  "duration_s": $D,
   "tokens": null
 }
 EOF
@@ -240,12 +265,15 @@ jq . evidence/<run_id>/agent-result.json
 |---|---|
 | `case` | Identificador do caso, exatamente como no nome do arquivo: `"C1"` a `"C5"` |
 | `agent` | Nome da ferramenta de IA: `"claude-code"`, `"codex"` etc. |
-| `model` | Identificador do modelo que você é. Não sabe: `"desconhecido"` |
+| `model` | Identificador do modelo que o ambiente informar. Não sabe: `"desconhecido"` |
 | `claims` | Objeto com as chaves que o seu `cases/C<n>.md` pede. Nada além delas |
-| `tool_calls` | Inteiro: todas as chamadas de ferramenta que você fez neste caso (shell, leitura e escrita de arquivo) |
-| `duration_s` | Inteiro: segundos desde o `t0` (saída do `echo` acima) |
+| `tool_calls` | Inteiro: número de chamadas de ferramenta que você fez neste caso. Conta a leitura dos dois `.md` e o comando que grava este JSON. Vários `ad2.sh` dentro de uma chamada contam como uma |
+| `duration_s` | Inteiro: segundos desde o `t0` (o `$D` acima) |
 | `tokens` | Inteiro com o total de tokens, se você souber. Senão `null` |
 | `abortado` | Só se você parou antes do fim: o motivo |
+| `aprovacao_manual` | Só se você roda como subagente e os comandos não passaram por aprovação manual do operador: `false` |
+
+O heredoc sem aspas (`<<EOF`) troca `$D` pelo número. Por isso não use `$` nem crase nos valores.
 
 Regras dos valores em `claims`:
 

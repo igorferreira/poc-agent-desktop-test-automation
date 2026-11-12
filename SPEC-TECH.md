@@ -297,7 +297,7 @@ python3 -m harness env up [--display isolated] [--terminal mate-terminal|xterm] 
 python3 -m harness env down
 python3 -m harness run [--scenario C3] [--reps 1] [--read l2|l3] [--timeout 5]    # sem --scenario: C1-C5
 python3 -m harness verify C3 --result evidence/<run_id>/agent-result.json         # sai 0 se passou, 1 se não
-python3 -m harness report           # não implementado (sai 2)
+python3 -m harness report [--phase-a-l2 DIR] [--phase-a-l3 DIR]   # gera RESULTS.md a partir de evidence/
 ```
 
 `--display real` é recusado. `run` usa o ambiente já no ar; cada passo espera por condição no oráculo (timeout padrão 5 s, registrado em `meta.json`). Nos passos [L] a leitura (L2 padrão) só alimenta a fidelidade. `verify` julga o estado final (oráculo) e compara `claims` com o TEST-PLAN §6 (texto em maiúsculas; C1 `opcoes` por trecho; C2 `telas` ignora repetições consecutivas, esperado T01, T02, T01). `probe` (sondagens) ainda não está no CLI.

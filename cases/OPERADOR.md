@@ -37,6 +37,7 @@ O agente acha o window-id sozinho. Ele pode mudar depois de `env down`/`env up`;
    > Leia `cases/AGENT.md` e `cases/C3.md` e execute o caso C3. run_id: `B-C3-r1-20261112-150000`. Raiz do repositório: `/opt/projetos/poc-agent-desktop-test-automation`.
 
 4. Aprove os comandos do agente conforme pedidos. Não use modo que pula permissões. Recuse qualquer comando fora do que o `cases/AGENT.md` permite (por exemplo `tmux`, `agent-desktop` direto, leitura de `data/` ou `tests/`) e registre a tentativa.
+   - Se o agente rodar como subagente, sem aprovação manual de comandos, registre isso no resultado da repetição (o `agent-result.json` traz `"aprovacao_manual": false`; anote também junto ao `verify.json`).
 5. Não mexa no teclado nem no mouse dentro da janela `CADCLI-DISPLAY` durante a execução.
 
 ## Julgar

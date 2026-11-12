@@ -1,6 +1,6 @@
 # TASKS — POC agent-desktop em tela verde
 
-Atualizado em 2026-11-11. Fonte de requisitos: [PRD.md](PRD.md). Como fazer: [SPEC-TECH.md](SPEC-TECH.md). Visão geral: [ARCH.md](ARCH.md). Telas: [SCREENS.md](SCREENS.md). Cenários: [TEST-PLAN.md](TEST-PLAN.md). Ambiente: [SETUP.md](SETUP.md).
+Atualizado em 2026-11-12. Fonte de requisitos: [PRD.md](PRD.md). Como fazer: [SPEC-TECH.md](SPEC-TECH.md). Visão geral: [ARCH.md](ARCH.md). Telas: [SCREENS.md](SCREENS.md). Cenários: [TEST-PLAN.md](TEST-PLAN.md). Ambiente: [SETUP.md](SETUP.md).
 
 **Status:** `TODO` · `DOING` · `DONE` · `BLOCKED` (dizer o motivo) · `SKIP` (dizer o motivo).
 
@@ -21,8 +21,9 @@ Atualizado em 2026-11-11. Fonte de requisitos: [PRD.md](PRD.md). Como fazer: [SP
 | T-003 | Escrever ARCH.md com C4 em Mermaid | Arquivo no repositório | devsquad-architect | Arquitetura | T-001 | DONE |
 | T-004 | Escrever TASKS.md | Arquivo no repositório | devsquad-lead | Liderança técnica | T-001 | DONE |
 | T-005 | Levantar o ambiente (SO, sessão, ferramentas, AT-SPI, `agent-desktop status`) | Fatos registrados no PRD §11 e SPEC §1 | linux-sys | Infra Linux | — | DONE |
-| T-006 | Decidir D1–D6 do PRD §12 | Respostas registradas no PRD | Igor | Dono do produto | T-001 | DOING (D1–D3 e D5 decididas; D4 e D6 pendentes, vale o padrão) |
+| T-006 | Decidir D1–D6 do PRD §12 | Respostas registradas no PRD | Igor | Dono do produto | T-001 | DOING (D1–D3 e D5 decididas; D4 e D6 seguem o padrão: Claude Code na Fase B, limiares como propostos; falta Igor confirmar) |
 | T-007 | Escrever os documentos complementares aprovados: SCREENS.md, TEST-PLAN.md, SETUP.md, AGENTS.md, CLAUDE.md | Arquivos no repositório | devsquad-lead | Liderança técnica | T-006 | DONE |
+| T-008 | README.md e LICENSE (MIT) para o repositório público | Arquivos publicados no GitHub | devsquad-lead | Liderança técnica | T-010 | DONE |
 
 ## F1 — Ambiente
 
@@ -47,7 +48,8 @@ Feita com tela falsa, antes do app COBOL. Cada sondagem grava os envelopes em `e
 | T-024 | P5: entrada com `--headed` (I2): texto, Enter, Tab, Backspace, F3, F12 | Cada tecla confirmada ou negada pelo oráculo | devsquad-qa | QA | T-021 | DONE |
 | T-025 | P6: leitura L2 pela área de transferência | Similaridade com o oráculo registrada | devsquad-qa | QA | T-024 | DONE |
 | T-026 | P7: leitura L3 por `screenshot` + `tesseract` | Similaridade com o oráculo registrada | devsquad-qa | QA | T-021 | DONE |
-| T-027 | P8: controles — `xterm`, terminal sem tmux, display isolado contra sessão real | Matriz preenchida | devsquad-qa | QA | T-014, T-024 | DOING (xterm feito; sem tmux e sessão real pendentes) |
+| T-027 | P8: controles — `xterm`, terminal sem tmux, display isolado contra sessão real | Matriz preenchida | devsquad-qa | QA | T-014, T-024 | DOING (xterm feito; terminal sem tmux pendente; sessão real na T-029) |
+| T-029 | P8 na sessão real (`DISPLAY=:0`): leitura L2 e entrada I2 com a guarda de foco | Resultado registrado no G0-VIABILIDADE.md e no RESULTS.md | devsquad-qa | QA | T-027 | BLOCKED (autorizada por Igor; espera ele fechar gerenciador de senhas e mensageiros e avisar "pronto") |
 | T-028 | **Portão G0:** nota de viabilidade com a matriz estratégia × terminal × display | Igor decide seguir ou encerrar com NO-GO | devsquad-lead | Liderança técnica | T-022 a T-027 | DONE (Igor: seguir, 2026-11-12) |
 
 ## F3 — App CADCLI
@@ -68,6 +70,7 @@ Feita com tela falsa, antes do app COBOL. Cada sondagem grava os envelopes em `e
 | T-043 | `screen.py`: estratégias de leitura viáveis segundo G0, normalização, fidelidade | Testes unitários de normalização e fidelidade passam | python-senior | Desenvolvimento Python | T-040, T-028 | DONE |
 | T-044 | `keys.py`: envio de texto e teclas com guarda de foco | Envio abortado quando a janela ativa não é a CADCLI (teste) | python-senior | Desenvolvimento Python | T-040, T-028 | DONE |
 | T-045 | `probes.py`: automatizar P2–P8 | `python3 -m harness probe` reproduz a matriz de G0 | python-senior | Desenvolvimento Python | T-043, T-044 | TODO |
+| T-046 | `scripts/ad2.sh`: guarda que recusa rodar o agent-desktop fora do display isolado | Recusa com `DISPLAY` diferente de `:2` ou D-Bus da sessão real | devsquad-qa | QA | T-014 | DONE |
 
 ## F5 — Fase A (determinística)
 
@@ -85,15 +88,19 @@ Feita com tela falsa, antes do app COBOL. Cada sondagem grava os envelopes em `e
 | T-061 | `harness verify` | Julga um caso pelo oráculo, sem depender do agente | python-senior | Desenvolvimento Python | T-042 | DONE |
 | T-062 | Rodar os cinco casos com a IA escolhida em D4, 3 repetições, via CLI | Resultados e custo registrados | devsquad-qa | QA | T-060, T-061 | DONE |
 | T-063 | Opcional: repetir via MCP ou com uma segunda IA | Resultados registrados | devsquad-qa | QA | T-062 | SKIP (opcional; não pedido) |
+| T-064 | Revisar `cases/AGENT.md` e `cases/OPERADOR.md` com o que os agentes da T-062 relataram | Ambiguidades da T-062 resolvidas no texto | ai-solution-architect | Arquitetura de IA | T-062 | DONE (não revalidado com nova execução) |
 
 ## F7 — Fechamento
 
 | ID | Tarefa | Pronto quando | Agente | Papel | Depende | Status |
 |---|---|---|---|---|---|---|
-| T-070 | `report.py` e `RESULTS.md` | Matriz de viabilidade, métricas das duas fases, limitações | python-senior | Desenvolvimento Python | T-052, T-062 | TODO |
+| T-070 | `report.py` e `RESULTS.md` | Matriz de viabilidade, métricas das duas fases, limitações | python-senior | Desenvolvimento Python | T-052, T-062 | DONE |
 | T-071 | Revisão de código do app e do harness | Sem achado bloqueante em aberto | devsquad-reviewer | Revisão | T-070 | TODO |
 | T-072 | Veredito GO, GO com ressalvas ou NO-GO, e proposta de fase 2 | Seção de veredito no `RESULTS.md`, aprovada por Igor | devsquad-strategy | Estratégia | T-070 | TODO |
 | T-073 | Documentação de uso final (README; AGENTS.md com os comandos reais) | Outra pessoa reproduz a POC seguindo o README | devsquad-lead | Liderança técnica | T-071 | TODO |
+| T-074 | `CUSTOS.md`: consumo de tokens e custo estimado de toda a POC, a partir dos registros da sessão | Tabelas por modelo, grupo, subagente e caso, com premissas e scripts para refazer | devsquad-lead | Liderança técnica | T-062 | DONE |
+| T-075 | Revisão de texto do `RESULTS.md` (o gerador escreve sem acentos) | `harness/report.py` gera texto acentuado | python-senior | Desenvolvimento Python | T-070 | TODO |
+| T-076 | Atualizar `CUSTOS.md` com o consumo das tarefas de fechamento (T-071 a T-073) | Fotografia final do custo | devsquad-lead | Liderança técnica | T-073 | TODO |
 
 ## Achados
 
@@ -129,3 +136,5 @@ Registrar aqui, com data, o que a execução descobrir e que mude o plano.
 - 2026-11-12 — Fase A, L3 (`evidence/20261112-112535`): C1–C5 10/10 cada (o julgamento é pelo oráculo); 120 leituras, similaridade média 0,46, 0% exatas. No app COBOL o OCR é muito pior que na tela falsa (0,86): L3 não serve como leitura.
 - 2026-11-12 — Fase B (T-062), Claude Code como subagente sem contexto, 3 repetições por caso: 15/15 passaram no `verify` (estado do oráculo e `claims`). Custo por repetição: 90–99 mil tokens do subagente, 5–14 chamadas de ferramenta, 40–139 s. Registro em `evidence/phase-b-ledger.tsv`. A C5 r3 foi interrompida por limite de uso da API e retomada; tempo e tokens dela não contam.
 - 2026-11-12 — Fase B: os subagentes rodaram comandos sem aprovação manual do operador (o `OPERADOR.md` previa aprovar cada um). Nenhum relatou leitura fora do permitido; o oráculo confirma o estado, mas não prova que o agente não leu arquivos proibidos.
+- 2026-11-12 — T-074: o número "tokens do subagente" que o Claude Code mostra ao fim de cada subagente (cerca de 95 mil na Fase B) é o tamanho do contexto final, não o consumo. O consumo real, somado pelos registros da sessão, foi de 400 mil a 1,3 milhão de tokens por repetição da Fase B. `RESULTS.md` corrigido. Total da POC até 19:07 UTC: 54,9 milhões de tokens, cerca de US$ 44,80 em preço de API (detalhes em CUSTOS.md).
+- 2026-11-12 — T-074: os subagentes `devsquad-*`, `python-senior` e `ubuntu-mate-doc` rodaram em `claude-sonnet-5-5`, pela definição de cada agente; os `general-purpose` e `ai-solution-architect`, em `claude-opus-5-5`.

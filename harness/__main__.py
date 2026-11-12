@@ -95,7 +95,9 @@ def main(argv=None) -> int:
     v = sub.add_parser("verify")
     v.add_argument("cenario", choices=sorted(CLAIMS))
     v.add_argument("--result", required=True)
-    sub.add_parser("report")
+    rp = sub.add_parser("report")
+    rp.add_argument("--phase-a-l2")
+    rp.add_argument("--phase-a-l3")
     a = p.parse_args(argv)
 
     if a.cmd == "env":
@@ -121,8 +123,9 @@ def main(argv=None) -> int:
         return 0 if all(d["passed"] == d["reps"] for d in s["scenarios"].values()) else 1
     if a.cmd == "verify":
         return cmd_verify(a)
-    print("report: nao implementado")
-    return 2
+    from harness import report
+    print(report.generate(a.phase_a_l2, a.phase_a_l3))
+    return 0
 
 
 if __name__ == "__main__":
