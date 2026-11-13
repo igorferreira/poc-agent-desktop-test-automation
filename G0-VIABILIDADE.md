@@ -42,3 +42,5 @@ Seguir para F3–F5 com **L2 como leitura principal**, **L3 como apoio** e **I2*
 ## Decisão
 
 2026-11-12 — Igor: **seguir**. Igor também autorizou a sondagem de controle P8 na sessão real, com os apps sensíveis fechados e sem uso de teclado e mouse durante a execução.
+
+2026-11-13 — Tentativa da sondagem na sessão real (T-029): bloqueada antes de qualquer envio. O barramento AT-SPI da sessão real recusa conexões (`accessibility: denied`). Reiniciá-lo é decisão do Igor.

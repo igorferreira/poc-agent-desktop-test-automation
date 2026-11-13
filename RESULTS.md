@@ -6,7 +6,9 @@
 
 Lendo a tela pela área de transferência (L2) e enviando teclas com `--headed`, o agent-desktop completou C1-C5 em 50/50 repetições determinísticas e 15/15 casos conduzidos por IA, mas só no mate-terminal e em display isolado.
 
-**Veredito PROPOSTO: GO COM RESSALVAS.** O veredito final é do Igor (T-072); este texto é só a proposta.
+**Veredito PROPOSTO pelos números: GO COM RESSALVAS.**
+
+**Veredito FINAL: GO COM RESSALVAS**, aprovado por Igor em 2026-11-12 (T-072).
 
 Regra (PRD seção 8):
 

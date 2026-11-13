@@ -85,6 +85,10 @@ def load_phase_b(evid: Path) -> dict:
     return out
 
 
+# Decisão do dono do produto (T-072): veredito, quem, quando.
+DECISAO = ("GO com ressalvas", "Igor", "2026-11-12")
+
+
 def verdict(a2: dict, b: dict) -> dict:
     """Regra do PRD seção 8. GO exige limiares (A em L2, fidelidade L2, B); como só o mate-terminal funciona
     (xterm invisível), aplica-se a cláusula de ressalva 'só em um emulador de terminal específico'."""
@@ -121,7 +125,11 @@ def render(a2: dict, a3: dict, b: dict) -> str:
     w(f"Lendo a tela pela área de transferência (L2) e enviando teclas com `--headed`, o agent-desktop completou "
       f"C1-C5 em {sum(s['passed'] for s in a2['sc'].values())}/{sum(s['reps'] for s in a2['sc'].values())} "
       f"repetições determinísticas e {pas_b}/{tot_b} casos conduzidos por IA, mas só no mate-terminal e em display isolado.\n")
-    w(f"**Veredito PROPOSTO: {v['nome'].upper()}.** O veredito final é do Igor (T-072); este texto é só a proposta.\n")
+    w(f"**Veredito PROPOSTO pelos números: {v['nome'].upper()}.**\n")
+    if v["nome"] == DECISAO[0]:
+        w(f"**Veredito FINAL: {DECISAO[0].upper()}**, aprovado por {DECISAO[1]} em {DECISAO[2]} (T-072).\n")
+    else:
+        w(f"**Atenção:** a decisão registrada ({DECISAO[0]}, {DECISAO[2]}) difere do que os números atuais indicam; precisa de nova decisão do Igor (T-072).\n")
     w("Regra (PRD seção 8):\n")
     w(f"- Fase A, L2, taxa por cenário >= 9/10: {ok(v['a_ok'])}.")
     w(f"- Fidelidade L2, igualdade exata >= 95%: {ok(v['f_ok'])} ({f1(a2['fid']['exact_pct'])}%).")

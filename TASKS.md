@@ -21,7 +21,7 @@ Atualizado em 2026-11-12. Fonte de requisitos: [PRD.md](PRD.md). Como fazer: [SP
 | T-003 | Escrever ARCH.md com C4 em Mermaid | Arquivo no repositório | devsquad-architect | Arquitetura | T-001 | DONE |
 | T-004 | Escrever TASKS.md | Arquivo no repositório | devsquad-lead | Liderança técnica | T-001 | DONE |
 | T-005 | Levantar o ambiente (SO, sessão, ferramentas, AT-SPI, `agent-desktop status`) | Fatos registrados no PRD §11 e SPEC §1 | linux-sys | Infra Linux | — | DONE |
-| T-006 | Decidir D1–D6 do PRD §12 | Respostas registradas no PRD | Igor | Dono do produto | T-001 | DOING (D1–D3 e D5 decididas; D4 e D6 seguem o padrão: Claude Code na Fase B, limiares como propostos; falta Igor confirmar) |
+| T-006 | Decidir D1–D6 do PRD §12 | Respostas registradas no PRD | Igor | Dono do produto | T-001 | DONE (D4 e D6 confirmadas por Igor em 2026-11-12) |
 | T-007 | Escrever os documentos complementares aprovados: SCREENS.md, TEST-PLAN.md, SETUP.md, AGENTS.md, CLAUDE.md | Arquivos no repositório | devsquad-lead | Liderança técnica | T-006 | DONE |
 | T-008 | README.md e LICENSE (MIT) para o repositório público | Arquivos publicados no GitHub | devsquad-lead | Liderança técnica | T-010 | DONE |
 
@@ -49,7 +49,7 @@ Feita com tela falsa, antes do app COBOL. Cada sondagem grava os envelopes em `e
 | T-025 | P6: leitura L2 pela área de transferência | Similaridade com o oráculo registrada | devsquad-qa | QA | T-024 | DONE |
 | T-026 | P7: leitura L3 por `screenshot` + `tesseract` | Similaridade com o oráculo registrada | devsquad-qa | QA | T-021 | DONE |
 | T-027 | P8: controles — `xterm`, terminal sem tmux, display isolado contra sessão real | Matriz preenchida | devsquad-qa | QA | T-014, T-024 | DONE (xterm e sem tmux feitos; sessão real separada na T-029) |
-| T-029 | P8 na sessão real (`DISPLAY=:0`): leitura L2 e entrada I2 com a guarda de foco | Resultado registrado no G0-VIABILIDADE.md e no RESULTS.md | devsquad-qa | QA | T-027 | BLOCKED (autorizada por Igor; espera ele fechar gerenciador de senhas e mensageiros e avisar "pronto") |
+| T-029 | P8 na sessão real (`DISPLAY=:0`): leitura L2 e entrada I2 com a guarda de foco | Resultado registrado no G0-VIABILIDADE.md e no RESULTS.md | devsquad-qa | QA | T-027 | BLOCKED (tentada em 2026-11-13: o barramento AT-SPI da sessão real recusa conexões; reiniciá-lo é decisão do Igor, SPEC §11 regra 6) |
 | T-028 | **Portão G0:** nota de viabilidade com a matriz estratégia × terminal × display | Igor decide seguir ou encerrar com NO-GO | devsquad-lead | Liderança técnica | T-022 a T-027 | DONE (Igor: seguir, 2026-11-12) |
 
 ## F3 — App CADCLI
@@ -96,7 +96,7 @@ Feita com tela falsa, antes do app COBOL. Cada sondagem grava os envelopes em `e
 |---|---|---|---|---|---|---|
 | T-070 | `report.py` e `RESULTS.md` | Matriz de viabilidade, métricas das duas fases, limitações | python-senior | Desenvolvimento Python | T-052, T-062 | DONE |
 | T-071 | Revisão de código do app e do harness | Sem achado bloqueante em aberto | devsquad-reviewer | Revisão | T-070 | DONE (aprovado; 2 bloqueantes corrigidos) |
-| T-072 | Veredito GO, GO com ressalvas ou NO-GO, e proposta de fase 2 | Seção de veredito no `RESULTS.md`, aprovada por Igor | devsquad-strategy | Estratégia | T-070 | TODO |
+| T-072 | Veredito GO, GO com ressalvas ou NO-GO, e proposta de fase 2 | Seção de veredito no `RESULTS.md`, aprovada por Igor | devsquad-strategy | Estratégia | T-070 | DONE (Igor: GO com ressalvas, 2026-11-12) |
 | T-073 | Documentação de uso final (README; AGENTS.md com os comandos reais) | Outra pessoa reproduz a POC seguindo o README | devsquad-lead | Liderança técnica | T-071 | DONE |
 | T-074 | `CUSTOS.md`: consumo de tokens e custo estimado de toda a POC, a partir dos registros da sessão | Tabelas por modelo, grupo, subagente e caso, com premissas e scripts para refazer | devsquad-lead | Liderança técnica | T-062 | DONE |
 | T-075 | Revisão de texto do `RESULTS.md` (o gerador escreve sem acentos) | `harness/report.py` gera texto acentuado | python-senior | Desenvolvimento Python | T-070 | DONE |
@@ -146,3 +146,4 @@ Registrar aqui, com data, o que a execução descobrir e que mude o plano.
 - 2026-11-12 — T-077: os 6 itens corrigidos. Mudou o comportamento do app (só Enter valida ou grava; outra tecla é ignorada) e o do C2 (`app/run.sh` grava o código de saída em `bin/cadcli.exit`; o C2 exige 0). As Fases A e B da T-051 e da T-062 foram medidas na versão anterior. A Fase A é refeita na T-078; a Fase B não é refeita (custo), e isso fica registrado no `RESULTS.md`.
 - 2026-11-12 — T-078: Fase A refeita com o código final. L2 (`evidence/20261112-162519`): C1–C5 10/10 cada, 120 leituras 100% exatas, nenhum erro. L3 (`evidence/20261112-163758`): 10/10 cada, similaridade 0,48, 0% exatas. Mesmos resultados da T-051. `RESULTS.md` regerado com essas execuções.
 - 2026-11-12 — T-076: custo final até 19:48 UTC: 71,1 milhões de tokens, cerca de US$ 50,43 em preço de API.
+- 2026-11-13 — T-029: com autorização de Igor, a sondagem na sessão real foi tentada. Nenhuma tecla foi enviada e a área de transferência não foi tocada: o `agent-desktop status` na sessão real agora diz `accessibility: denied` ("The accessibility bus daemon's socket is missing or refusing connections"), e `list-windows` devolve `PLATFORM_NOT_SUPPORTED`. Em 2026-11-11 o mesmo `status` dava `granted`. A janela CADCLI existia no X. A correção sugerida pela ferramenta (`systemctl --user restart at-spi-dbus-bus.service` ou sair e entrar na sessão) mexe na sessão do usuário: fica com Igor.
